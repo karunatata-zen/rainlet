@@ -69,9 +69,18 @@ body.is-locked {
 
 /* Backdrop stack -------------------------------------------------------- */
 
+/* Every fixed/absolute layer here writes its offsets out longhand as well as
+   with `inset`. The shorthand is from 2021 and the Kindle's browser is older
+   than that: unsupported, the whole declaration is dropped and the element
+   falls back to its static position, which put the settings panel off the
+   bottom of the page and made the button look dead. */
 .backdrop {
   position: fixed;
   inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
@@ -82,6 +91,10 @@ body.is-locked {
 .backdrop__media img {
   position: absolute;
   inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -90,6 +103,10 @@ body.is-locked {
 .backdrop__scrim {
   position: absolute;
   inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background: var(--paper);
   opacity: 0;
 }
@@ -97,6 +114,10 @@ body.is-locked {
 .backdrop__rain {
   position: absolute;
   inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   image-rendering: pixelated;

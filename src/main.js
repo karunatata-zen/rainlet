@@ -16,6 +16,7 @@ import { createMascot } from "./ui/mascot.js";
 import { hydrateIcons } from "./ui/icons.js";
 import { createBackdrop } from "./ui/backdrop.js";
 import { createIdle } from "./ui/idle.js";
+import { startDebug } from "./ui/debug.js";
 import { createClock } from "./widgets/clock.js";
 import { PHASE_RAIN, phaseAt, watchPhase } from "./scene/daylight.js";
 import {
@@ -514,4 +515,12 @@ function main() {
   }
 }
 
-main();
+// Installed before main so it catches an error thrown during setup, which on
+// a Kindle would otherwise be a blank page with nothing to go on.
+const debug = startDebug();
+try {
+  main();
+} catch (error) {
+  if (debug) debug.fail(error);
+  throw error;
+}
