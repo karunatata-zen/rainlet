@@ -143,7 +143,7 @@ function toStageGrid(rows, lift = 0) {
 export function customPet(rows) {
   return {
     label: "Mine",
-    emoji: "\u270e",
+    icon: "pencil",
     hint: "The one you made. Tap Edit to change them.",
     frames: [toStageGrid(rows, 0), toStageGrid(rows, 1)],
     // No overrides: a hand-drawn pet uses the shared palette as-is, which is

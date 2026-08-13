@@ -525,6 +525,21 @@ it threw mid-boot, everything scheduled after it. Neither showed up anywhere
 except on the device. Prefer the oldest call that does the job: `removeChild`
 in a loop, and the four long-hand offsets.
 
+**No emoji, anywhere on screen.** The animal chips used to be 🐱🐶🦆🐰🐸 and
+on the Kindle every one of them came out as a question mark: the device has no
+emoji font and there is nothing to fall back to. Each animal now has a 16×16
+pixel face drawn in `ui/icons.js` alongside the other icons — a glyph that ships
+with the page cannot be missing. Everything else on screen stays inside the
+bundled pixel font's 226 characters, which was checked rather than assumed.
+
+**Only the document scrolls.** The pet maker opened on the device but could not
+be moved: it was a `position: fixed` layer with its own `overflow-y: auto`,
+wrapped around a panel with a second one, over a body frozen with
+`overflow: hidden` — three ways to say "scroll" and the Kindle honoured none of
+them. The overlay is now part of the page (`position: absolute`, no overflow of
+its own) and opening it hides the shell behind it, so the document is exactly as
+tall as the panel and scrolling it is ordinary page scrolling.
+
 **A failure has to be readable on the device.** There is no console on a
 Kindle, so a thrown error is a half-drawn page and nothing to report. Boot is
 wrapped, and anything that escapes prints one plain line at the top of the

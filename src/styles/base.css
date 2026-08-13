@@ -53,9 +53,14 @@ button {
   font-size: var(--text-xs);
 }
 
-/* Set while an overlay is open, so the page behind it cannot scroll away. */
-body.is-locked {
-  overflow: hidden;
+/* Set while an overlay is open. The page behind it is hidden outright rather
+   than frozen with overflow:hidden — that trick also froze the overlay on the
+   Kindle, which could then not be scrolled at all. With the shell gone the
+   document is the panel, and scrolling the document is the one thing that
+   device is certain to do. */
+body.has-panel .shell,
+body.has-panel .backdrop {
+  display: none;
 }
 
 :focus-visible {

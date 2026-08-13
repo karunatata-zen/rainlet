@@ -18,7 +18,7 @@ import {
 import { getSettings, setSetting } from "./settings/store.js";
 import { createRain } from "./rain/engine.js";
 import { createMascot } from "./ui/mascot.js";
-import { hydrateIcons } from "./ui/icons.js";
+import { hydrateIcons, icon } from "./ui/icons.js";
 import { createIdle } from "./ui/idle.js";
 import { showFatal, startDebug } from "./ui/debug.js";
 import { createClock } from "./widgets/clock.js";
@@ -165,10 +165,13 @@ function main() {
     if (id) button.dataset.pet = id;
     if (pressable) button.setAttribute("aria-pressed", "false");
 
-    const emoji = document.createElement("span");
-    emoji.className = "chip__emoji";
-    emoji.textContent = preset.emoji;
-    button.appendChild(emoji);
+    // A drawn glyph, not an emoji: the Kindle has no emoji font and rendered
+    // every animal as a question mark.
+    const glyph = document.createElement("span");
+    glyph.className = "chip__glyph";
+    glyph.setAttribute("data-icon", preset.icon);
+    glyph.innerHTML = icon(preset.icon);
+    button.appendChild(glyph);
 
     const label = document.createElement("span");
     label.textContent = preset.label;
@@ -197,7 +200,7 @@ function main() {
     }
     petChip(
       null,
-      { emoji: "\u002b", label: custom ? "Edit" : "Make" },
+      { icon: "plus", label: custom ? "Edit" : "Make" },
       {
         pressable: false,
       },
@@ -476,15 +479,24 @@ function main() {
 
   function openPanel(panel, onOpen) {
     panel.hidden = false;
-    document.body.classList.add("is-locked");
+    // Hides the page behind it, which leaves the document exactly as tall as
+    // the panel — the Kindle scrolls the document happily and a nested
+    // scrolling box not at all.
+    document.body.classList.add("has-panel");
     if (onOpen) onOpen();
     const focusable = panel.querySelector("button, input, select");
     if (focusable) focusable.focus();
+    // Focusing can leave the page part-scrolled; start at the title.
+    window.scrollTo(0, 0);
   }
 
   function closePanel(panel) {
     panel.hidden = true;
-    document.body.classList.remove("is-locked");
+    document.body.classList.remove("has-panel");
+    window.scrollTo(0, 0);
+    // The rain canvas was display:none while the panel was up, so it measured
+    // zero. Give it its size back.
+    rain.resize();
   }
 
   el("close-maker").addEventListener("click", () => closePanel(makerOverlay));

@@ -448,7 +448,7 @@ const FROG_FRAMES = [
 export const PETS = {
   cat: {
     label: "Cat",
-    emoji: "🐱",
+    icon: "cat",
     hint: "A tuxedo cat, unbothered, slightly damp.",
     frames: CAT_FRAMES,
     colors: {
@@ -459,7 +459,7 @@ export const PETS = {
   },
   dog: {
     label: "Dog",
-    emoji: "🐶",
+    icon: "dog",
     hint: "Delighted by the rain. Shakes it off anyway.",
     frames: DOG_FRAMES,
     colors: {
@@ -471,7 +471,7 @@ export const PETS = {
   },
   duck: {
     label: "Duck",
-    emoji: "🦆",
+    icon: "duck",
     hint: "Best day of the week, as far as she is concerned.",
     frames: DUCK_FRAMES,
     colors: {
@@ -482,7 +482,7 @@ export const PETS = {
   },
   bunny: {
     label: "Bunny",
-    emoji: "🐰",
+    icon: "bunny",
     hint: "Brought a flower. Mostly staying dry.",
     frames: BUNNY_FRAMES,
     colors: {
@@ -493,7 +493,7 @@ export const PETS = {
   },
   frog: {
     label: "Frog",
-    emoji: "🐸",
+    icon: "frog",
     hint: "A round green friend in his element.",
     frames: FROG_FRAMES,
     colors: {
