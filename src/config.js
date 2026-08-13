@@ -4,10 +4,10 @@ export const APP_NAME = "Rainlet";
 export const APP_TAGLINE = "your kindle, but cozy";
 
 export const STORAGE_PREFIX = "rainlet:";
-export const DB_NAME = "rainlet-media";
-// 3 dropped the old tracks/videos stores; the upgrade deletes them so anyone
-// who used the earlier build gets that space back.
-export const DB_VERSION = 3;
+// Nothing is stored in IndexedDB any more — the music, the videos and finally
+// the custom backdrop all went. The name is kept only so boot can delete the
+// database anyone who ran an earlier build is still carrying around.
+export const DEAD_DB_NAME = "rainlet-media";
 
 // Per-mode render tuning. Paper values are deliberately grouped here so they
 // can be adjusted against a physical Kindle without hunting through the code.
@@ -39,9 +39,7 @@ export const TUNING = {
   },
 };
 
-export const BACKGROUND_MIME_HINT = "video/*,image/gif";
-
 // How long the page waits, untouched, before it drops the chrome and becomes
 // just the scene. Long enough not to interrupt someone fiddling with the
-// settings, short enough that a reader put down on a desk gets there by itself.
+// controls, short enough that a reader put down on a desk gets there by itself.
 export const IDLE_AFTER_MS = 60000;

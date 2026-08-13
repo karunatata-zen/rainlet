@@ -3,18 +3,22 @@
 
 import "./styles/main.css";
 
-import { APP_NAME, APP_TAGLINE, IDLE_AFTER_MS, TUNING } from "./config.js";
+import {
+  APP_NAME,
+  APP_TAGLINE,
+  DEAD_DB_NAME,
+  IDLE_AFTER_MS,
+  TUNING,
+} from "./config.js";
 import {
   applyMode,
   prefersReducedMotion,
   resolveMode,
 } from "./display-mode.js";
-import { getSettings, setSetting, resetPreferences } from "./settings/store.js";
-import { createSettingsPanel } from "./settings/panel.js";
+import { getSettings, setSetting } from "./settings/store.js";
 import { createRain } from "./rain/engine.js";
 import { createMascot } from "./ui/mascot.js";
 import { hydrateIcons } from "./ui/icons.js";
-import { createBackdrop } from "./ui/backdrop.js";
 import { createIdle } from "./ui/idle.js";
 import { startDebug } from "./ui/debug.js";
 import { createClock } from "./widgets/clock.js";
@@ -84,35 +88,20 @@ function main() {
   const wetnessNow = () =>
     weatherState ? (CONDITION_RAIN[weatherState.condition] ?? 1) : 1;
 
-  // Rain + backdrop ------------------------------------------------------
+  // Rain ------------------------------------------------------------------
   const rain = createRain(el("rain"));
-  const backdrop = createBackdrop({
-    mediaEl: el("backdrop-media"),
-    scrimEl: el("backdrop-scrim"),
-  });
 
   function applyRain() {
     const settings = getSettings();
-    const hasBackground = Boolean(backdrop.record) && settings.bgEnabled;
     const wetness = wetnessNow();
-    // Clear outside means a dry screen. That is the point of asking, but it is
-    // also the one case where this site shows no rain at all, so it can only
-    // happen when the user has deliberately turned the weather on.
-    const showRain =
-      (mode === "paper" || !hasBackground || settings.bgRainOverlay) &&
-      wetness > 0;
 
     rain.setMode(mode);
     rain.setScene(settings.scene);
-    rain.setIntensity(settings.intensity * (PHASE_RAIN[phase] || 1) * wetness);
+    rain.setIntensity((PHASE_RAIN[phase] || 1) * wetness);
     rain.freeze(reduced);
-    rain.setEnabled(showRain);
-
-    backdrop.apply({
-      enabled: settings.bgEnabled,
-      scrim: settings.bgScrim,
-      mode,
-    });
+    // Clear outside means a dry screen. That is the point of asking, and it can
+    // only happen when the real sky has deliberately been switched on.
+    rain.setEnabled(wetness > 0);
   }
 
   // Mascot + clock -------------------------------------------------------
@@ -382,8 +371,8 @@ function main() {
   }
 
   // A cached reading is published synchronously as this is constructed, which
-  // is before the settings panel and the overlays exist. Boot applies whatever
-  // arrived; this only handles what comes after.
+  // is before the controls below exist. Boot applies whatever arrived; this
+  // only handles what comes after.
   let booted = false;
 
   const weather = createWeather({
@@ -393,40 +382,92 @@ function main() {
       weatherState = state;
       if (!booted) return;
       applyWeather();
-      if (!settingsOverlay.hidden) settingsPanel.render();
+      renderControls();
     },
   });
 
-  // Settings -------------------------------------------------------------
-  const settingsPanel = createSettingsPanel({
-    weather,
-    bodyEl: el("settings-body"),
-    aboutEl: el("about-line"),
-    backdrop,
-    onToast: toast,
-    getMode: () => mode,
-    onChange() {
-      mode = applyMode(resolveMode());
-      applyRain();
-      applyStageMode();
-    },
-  });
+  // Controls ----------------------------------------------------------------
+  // There used to be a settings panel here. On the Kindle the button did
+  // nothing — an overlay is one more thing that can fail to open, and when it
+  // fails there is no way in and no way to tell why. What survives of it are
+  // the two switches worth having, sitting on the page where they cannot hide:
+  // which display mode, and whether the scene follows the real sky. Everything
+  // else it held (rain scene and intensity, the custom video background, the
+  // 12/24 clock, a storage readout) is either gone or already elsewhere — the
+  // clock toggles by tapping the clock.
+  const modeButton = el("toggle-mode");
+  const modeLabel = el("mode-label");
+  const weatherButton = el("toggle-weather");
+  const weatherLabel = el("weather-label");
+  const coordsRow = el("coords-row");
+  const coordsInput = el("coords");
 
-  el("reset-prefs").addEventListener("click", () => {
-    if (!window.confirm("Reset preferences back to the defaults?")) return;
-    resetPreferences();
+  function renderControls() {
+    const settings = getSettings();
+    // The button says what tapping it will give you, not where you are. "Paper"
+    // on a colour screen means "switch to Paper", which is the only reading
+    // that makes sense on a device with no hover and no tooltip.
+    modeLabel.textContent = mode === "paper" ? "Cozy" : "Paper";
+    modeButton.setAttribute(
+      "aria-label",
+      mode === "paper" ? "Switch to Cozy mode" : "Switch to Paper mode",
+    );
+
+    weatherButton.setAttribute("aria-pressed", String(settings.weather));
+    weatherLabel.textContent = !settings.weather
+      ? "Real sky"
+      : weather.state
+        ? conditionLabel(weather.state.condition)
+        : "Asking…";
+    coordsRow.hidden = !settings.weather;
+  }
+
+  modeButton.addEventListener("click", () => {
+    if (idle && idle.justWoke) return;
+    // An explicit choice, not "auto". Someone reaching for this button has
+    // already decided the automatic answer was wrong.
+    setSetting("mode", mode === "paper" ? "cozy" : "paper");
     mode = applyMode(resolveMode());
-    weather.setEnabled(getSettings().weather);
-    weather.setCoords(null);
     applyRain();
     applyStageMode();
-    selectPet(getSettings().pet, { save: false });
-    settingsPanel.render();
-    toast("Preferences reset");
+    mascot.setState("idle", { animate: mode !== "paper" && !reduced });
+    renderControls();
   });
 
+  weatherButton.addEventListener("click", () => {
+    if (idle && idle.justWoke) return;
+    const next = !getSettings().weather;
+    setSetting("weather", next);
+    weather.setEnabled(next);
+    if (!next) {
+      weatherState = null;
+      applyWeather();
+    }
+    renderControls();
+    toast(next ? "Following the sky outside" : "Back to always raining");
+  });
+
+  el("coords-use").addEventListener("click", () => {
+    const text = coordsInput.value.trim();
+    if (!text) {
+      setSetting("weatherCoords", "");
+      weather.setCoords(null);
+      toast("Back to asking your device");
+      return;
+    }
+    const parsed = parseCoords(text);
+    if (!parsed) {
+      toast("Needs two numbers, like 51.5, -0.12");
+      return;
+    }
+    setSetting("weatherCoords", text);
+    weather.setCoords(parsed);
+    toast("Looking at that sky instead");
+  });
+
+  coordsInput.value = getSettings().weatherCoords;
+
   // Overlays -------------------------------------------------------------
-  const settingsOverlay = el("settings-panel");
 
   function openPanel(panel, onOpen) {
     panel.hidden = false;
@@ -441,30 +482,15 @@ function main() {
     document.body.classList.remove("is-locked");
   }
 
-  el("open-settings").addEventListener("click", () => {
-    openPanel(settingsOverlay, () => settingsPanel.render());
-  });
-  el("close-settings").addEventListener("click", () =>
-    closePanel(settingsOverlay),
-  );
   el("close-maker").addEventListener("click", () => closePanel(makerOverlay));
   makerOverlay.addEventListener("click", (event) => {
-    if (event.target === makerOverlay) closePanel(makerOverlay);
-  });
-  settingsOverlay.addEventListener("click", (event) => {
     // Click the dimmed area, not the card, to dismiss.
-    if (event.target === settingsOverlay) closePanel(settingsOverlay);
+    if (event.target === makerOverlay) closePanel(makerOverlay);
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !settingsOverlay.hidden) {
-      closePanel(settingsOverlay);
-      return;
-    }
-    if (event.key === "Escape" && !makerOverlay.hidden) {
+    if (event.key === "Escape" && !makerOverlay.hidden)
       closePanel(makerOverlay);
-      return;
-    }
   });
 
   // Idle ------------------------------------------------------------------
@@ -473,7 +499,7 @@ function main() {
   // thing left floating over an otherwise empty screen.
   idle = createIdle({
     delay: IDLE_AFTER_MS,
-    blocked: () => !settingsOverlay.hidden || !makerOverlay.hidden,
+    blocked: () => !makerOverlay.hidden,
     onChange(isIdle) {
       if (isIdle) toastEl.hidden = true;
     },
@@ -488,15 +514,24 @@ function main() {
 
   // Boot -----------------------------------------------------------------
   booted = true;
-  backdrop.load().then(() => applyRain());
   applyWeather();
   applyStageMode();
+  renderControls();
   stage.setPhase(phase);
   setCustomPet(loadDrawing(), { select: false });
   selectPet(getSettings().pet, { save: false });
   const sharedRows = readSharedRows();
   if (sharedRows) offerGift(sharedRows);
   rain.resize();
+
+  // The last thing that used IndexedDB was the custom backdrop, which went out
+  // with the settings panel. A reader has little room to spare, so hand back
+  // whatever an earlier build left behind rather than let it sit there forever.
+  try {
+    if (window.indexedDB) indexedDB.deleteDatabase(DEAD_DB_NAME);
+  } catch {
+    // Blocked, private mode, or no IndexedDB at all. Nothing depends on it.
+  }
 
   // React to the OS flipping monochrome/reduced-motion under us.
   for (const query of ["(monochrome)", "(prefers-reduced-motion: reduce)"]) {
@@ -506,6 +541,7 @@ function main() {
         mode = applyMode(resolveMode());
         applyRain();
         applyStageMode();
+        renderControls();
       };
       if (mql.addEventListener) mql.addEventListener("change", onChange);
       else if (mql.addListener) mql.addListener(onChange);

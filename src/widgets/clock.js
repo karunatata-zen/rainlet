@@ -27,10 +27,13 @@ export function createClock({ button, output, onChange }) {
     const now = new Date();
     const msToNextMinute =
       (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
-    timer = setTimeout(() => {
-      render();
-      schedule();
-    }, Math.max(1000, msToNextMinute));
+    timer = setTimeout(
+      () => {
+        render();
+        schedule();
+      },
+      Math.max(1000, msToNextMinute),
+    );
   }
 
   button.addEventListener("click", () => {

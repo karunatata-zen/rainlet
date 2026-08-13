@@ -24,7 +24,11 @@ export function detectMode() {
   if (matches("(monochrome)")) return "paper";
 
   // Some e-readers report a very low colour depth instead.
-  if (screen && typeof screen.colorDepth === "number" && screen.colorDepth <= 8) {
+  if (
+    screen &&
+    typeof screen.colorDepth === "number" &&
+    screen.colorDepth <= 8
+  ) {
     return "paper";
   }
 

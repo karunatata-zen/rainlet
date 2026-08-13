@@ -12,7 +12,8 @@
 
 function supportsCss(property, value) {
   try {
-    if (window.CSS && window.CSS.supports) return window.CSS.supports(property, value);
+    if (window.CSS && window.CSS.supports)
+      return window.CSS.supports(property, value);
   } catch (error) {
     return "?";
   }
@@ -70,7 +71,9 @@ export function startDebug() {
   // The important one. A script error on this device is otherwise invisible.
   window.onerror = function (message, source, line) {
     place();
-    add("ERROR " + message + " @ " + String(source).split("/").pop() + ":" + line);
+    add(
+      "ERROR " + message + " @ " + String(source).split("/").pop() + ":" + line,
+    );
     return false;
   };
 

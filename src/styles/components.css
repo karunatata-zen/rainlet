@@ -65,12 +65,6 @@
   font-size: var(--text-md);
 }
 
-.chip--icon {
-  min-width: var(--tap);
-  min-height: var(--tap);
-  justify-content: center;
-}
-
 /* Inline SVG icons carry no intrinsic size, and their span wrapper is an
    inline flex item — without an explicit box they collapse to zero width. */
 .chip [data-icon],
@@ -119,20 +113,6 @@
   text-transform: uppercase;
 }
 
-.card__actions {
-  display: flex;
-  gap: var(--step-1);
-}
-
-.linkish {
-  background: none;
-  border: 0;
-  padding: 0;
-  font-size: var(--text-xs);
-  color: var(--rain);
-  text-decoration: underline;
-}
-
 .pbtn {
   display: inline-flex;
   align-items: center;
@@ -143,10 +123,6 @@
   border: var(--border) solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sticker);
-}
-
-.pbtn--primary {
-  background: var(--mint);
 }
 
 .pbtn:active {
@@ -169,6 +145,29 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--step-2);
+}
+
+/* The two switches that used to live in a settings panel. Set apart from the
+   animals above them so a tap meant for the frog does not turn Paper mode on. */
+.chips--controls {
+  margin-top: var(--step-2);
+  padding-top: var(--step-2);
+  border-top: 2px dotted var(--line);
+}
+
+.coords[hidden] {
+  display: none;
+}
+
+.coords {
+  display: flex;
+  gap: var(--step-2);
+  margin-top: var(--step-2);
+}
+
+.coords input {
+  flex: 1;
+  min-width: 0;
 }
 
 /* The whole scene is the button: on a Kindle, aiming at the animal itself
@@ -210,30 +209,15 @@
   background: var(--paper);
 }
 
-.chip--pet[aria-pressed="true"] {
+.chip--pet[aria-pressed="true"],
+.chip[aria-pressed="true"] {
   background: var(--peach);
   border-color: var(--ink-soft);
 }
 
-.chip--pet .chip__emoji,
-.chip--sound .chip__emoji {
+.chip--pet .chip__emoji {
   font-size: var(--text-md);
   line-height: 1;
-}
-
-/* Rain sounds ----------------------------------------------------------- */
-
-.chip--sound {
-  gap: var(--step-2);
-  min-height: var(--tap);
-  padding: 0 var(--step-3);
-  background: var(--paper);
-  text-align: left;
-}
-
-.chip--sound[aria-pressed="true"] {
-  background: var(--mint);
-  border-color: var(--ink-soft);
 }
 
 /* Overlays and panels --------------------------------------------------- */
@@ -318,65 +302,8 @@
   box-shadow: 1px 1px 0 var(--line);
 }
 
-/* Settings -------------------------------------------------------------- */
+/* Text fields ----------------------------------------------------------- */
 
-.settings {
-  display: flex;
-  flex-direction: column;
-  gap: var(--step-4);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--step-2);
-}
-
-.field__label {
-  font-family: var(--font-pixel);
-  font-size: var(--text-sm);
-}
-
-.field__hint {
-  font-size: var(--text-xs);
-  color: var(--ink-soft);
-}
-
-.field__row {
-  display: flex;
-  align-items: center;
-  gap: var(--step-2);
-  flex-wrap: wrap;
-}
-
-.segmented {
-  display: flex;
-  gap: var(--step-1);
-  flex-wrap: wrap;
-}
-
-.segmented button {
-  min-height: 34px;
-  padding: 0 var(--step-3);
-  background: var(--paper-raised);
-  border: var(--border) solid var(--line);
-  border-radius: var(--radius);
-  font-size: var(--text-xs);
-}
-
-.segmented button[aria-pressed="true"] {
-  background: var(--mint);
-  box-shadow: var(--shadow-sticker);
-}
-
-.switch {
-  display: flex;
-  align-items: center;
-  gap: var(--step-2);
-  font-size: var(--text-sm);
-}
-
-select,
 input[type="text"] {
   min-height: 34px;
   padding: 0 var(--step-2);
@@ -545,7 +472,8 @@ input[type="text"] {
 .is-idle .footer,
 .is-idle .card--stage .card__head,
 .is-idle .card--stage .chips,
-.is-idle .card--stage .gift {
+.is-idle .card--stage .gift,
+.is-idle .card--stage .coords {
   opacity: 0;
   pointer-events: none;
   transition: opacity 600ms ease;
@@ -555,7 +483,8 @@ input[type="text"] {
 .is-idle .footer,
 .is-idle .card--stage .card__head,
 .is-idle .card--stage .chips,
-.is-idle .card--stage .gift {
+.is-idle .card--stage .gift,
+.is-idle .card--stage .coords {
   /* Collapsed as well as faded. Faded alone leaves them taking up room, and
      the scene is then sized around things nobody can see. */
   position: absolute;
@@ -596,7 +525,8 @@ input[type="text"] {
   .is-idle .footer,
   .is-idle .card--stage .card__head,
   .is-idle .card--stage .chips,
-  .is-idle .card--stage .gift {
+  .is-idle .card--stage .gift,
+  .is-idle .card--stage .coords {
     transition: none;
   }
 }

@@ -11,10 +11,8 @@
     <title>Rainlet</title>
   </head>
   <body>
-    <!-- Backdrop layers: optional custom video/gif, then the canvas rain. -->
+    <!-- The canvas rain, behind everything. -->
     <div class="backdrop" aria-hidden="true">
-      <div class="backdrop__media" id="backdrop-media"></div>
-      <div class="backdrop__scrim" id="backdrop-scrim"></div>
       <canvas class="backdrop__rain" id="rain"></canvas>
     </div>
 
@@ -40,14 +38,6 @@
           >
             <span id="clock-time">--:--</span>
           </button>
-          <button
-            class="chip chip--icon"
-            id="open-settings"
-            type="button"
-            aria-label="Settings"
-          >
-            <span data-icon="gear"></span>
-          </button>
         </div>
       </header>
 
@@ -69,6 +59,35 @@
 
           <div class="chips" id="pet-chips"></div>
 
+          <!-- The two settings worth keeping, on the page rather than behind a
+               panel. An overlay is a thing that can fail to open; a button
+               that is already on screen is not. -->
+          <div class="chips chips--controls">
+            <button class="chip" id="toggle-mode" type="button">
+              <span id="mode-label">Paper</span>
+            </button>
+            <button
+              class="chip"
+              id="toggle-weather"
+              type="button"
+              aria-pressed="false"
+            >
+              <span id="weather-label">Real sky</span>
+            </button>
+          </div>
+
+          <!-- Shown when the real sky is on but the device would not say where
+               it is. Two numbers always work. -->
+          <div class="coords" id="coords-row" hidden>
+            <label class="visually-hidden" for="coords">
+              Latitude and longitude
+            </label>
+            <input id="coords" type="text" placeholder="51.5, -0.12" />
+            <button class="btn btn--quiet" id="coords-use" type="button">
+              Use
+            </button>
+          </div>
+
           <!-- Shown only when the page was opened from a shared pet link. -->
           <div class="gift" id="gift-bar" hidden>
             <span class="gift__text" id="gift-text">
@@ -80,43 +99,11 @@
             </button>
           </div>
         </article>
-
       </main>
 
       <footer class="footer">
         <span>Made with pixel rain · everything stays on your device</span>
       </footer>
-    </div>
-
-    <!-- Settings panel -->
-    <div class="overlay" id="settings-panel" hidden>
-      <div
-        class="panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settings-title"
-      >
-        <header class="panel__head">
-          <h2 id="settings-title">Settings</h2>
-          <button
-            class="pbtn"
-            id="close-settings"
-            type="button"
-            aria-label="Close"
-          >
-            <span data-icon="close"></span>
-          </button>
-        </header>
-
-        <div class="settings" id="settings-body"></div>
-
-        <footer class="panel__foot">
-          <span class="muted" id="about-line"></span>
-          <button class="btn btn--quiet" id="reset-prefs" type="button">
-            Reset preferences
-          </button>
-        </footer>
-      </div>
     </div>
 
     <!-- Pet maker panel -->

@@ -61,8 +61,8 @@ full-framerate canvas animation there is unusable and will drain battery.
 
 Detection: user-agent hints for known e-readers, plus
 `matchMedia('(monochrome)')`, plus a low `screen.colorDepth`. Wrong guesses are
-cheap — an Auto / Cozy / Paper toggle sits at the top of Settings, and the app
-re-checks if the OS flips monochrome or reduced-motion while it is open.
+cheap — a Mode button sits under the animals (§13), and the app re-checks if
+the OS flips monochrome or reduced-motion while it is open.
 
 `prefers-reduced-motion: reduce` forces the rain to a still frame in either
 mode. Paper mode is also the accessibility-safe default for anyone who finds
@@ -124,8 +124,8 @@ Single screen, no routing. Everything else is an overlay panel.
         ( pixel rain falls behind all of this )
 ```
 
-Settings is an overlay panel, so the main screen never scrolls out from under
-you. The card stays in a single column at every width, centred in a 1100px
+There is no settings overlay (§13); the two switches worth having are on the
+page. The card stays in a single column at every width, centred in a 1100px
 shell — a Kindle is portrait, so there is nothing to gain from spreading
 sideways. Touch targets are never
 smaller than 44px, which is what a Kindle's imprecise touch layer needs.
@@ -142,12 +142,11 @@ several MB, stays sharp at any resolution, can recolor per theme, and can slow
 to 1fps for e-ink. A video file does none of that, so canvas stays the
 default.
 
-**Custom video/GIF backgrounds** are supported as an alternative. Settings has
-an "upload your own background" slot accepting `video/*` and `image/gif`. The
-file is stored in IndexedDB, looped muted behind the UI,
-and dimmed by an adjustable scrim so text stays readable. Canvas rain can be
-layered on top or switched off. Cozy mode only — video on e-ink is a slideshow
-at best, so Paper mode falls back to canvas rain and says so in Settings.
+**Custom video/GIF backgrounds are gone.** They were built, and they were only
+ever reachable from the settings panel; when that came out (§13) the feature
+was orphaned. It was the same misjudgement as the sound and the picture export
+— video on e-ink is a slideshow at best, so the one device this site is named
+after could never have used it.
 
 **Look.** Droplets snap to an 8px grid so everything reads as pixel art, never
 as smooth vector lines. Three parallax layers at different speeds and opacities
@@ -155,7 +154,8 @@ give depth. Droplets are 1–3 cells tall, and on landing they pop a two-frame
 splash. Occasionally a droplet is a tiny heart or star instead — roughly 1 in
 200, just enough to be a nice surprise.
 
-**Scenes** (pick in Settings, default Drizzle):
+**Scenes** (Drizzle; the rest are in the engine but no longer pickable, since
+the picker lived in the settings panel):
 
 - **Drizzle** — light, slow, sparse. The calm default.
 - **Downpour** — dense and fast, with the odd lightning flash.
@@ -336,7 +336,7 @@ it — shows through.
 ## 9b. Real weather
 
 The scene can follow the sky where you actually are. Off by default; switched
-on in Settings.
+on with the **Real sky** button under the animals.
 
 **Why it exists.** The sun was on a clock and the rain never stopped, so a
 clear afternoon showed a sunshower every single day. Someone looking at their
@@ -347,7 +347,7 @@ there genuinely is one where you are.
 **How it works.** `current=weather_code,is_day` from open-meteo — free, no key,
 CORS-open, which is the only reason a static site can do this at all. Position
 comes from low-accuracy geolocation (8s timeout) or from a lat/long you type
-into Settings. The 28-entry WMO code table collapses to six skies we can draw:
+into the field beside that button. The 28-entry WMO code table collapses to six skies we can draw:
 clear, fair, cloudy, fog, rain, snow, storm. Each carries a rain multiplier —
 clear 0, fair 0.15, rain 1.15, storm 1.6 — and a "covered" flag.
 
@@ -364,7 +364,7 @@ silently to what was already there. Readings are cached for 30 minutes and a
 stale one is shown while a fresh one loads. Re-checks happen when the page
 becomes visible again, which on a reader is the moment the cover opens; there
 is no timer. Coordinates are rounded to two decimals (about a kilometre)
-before being sent, and the settings panel says so.
+before being sent.
 
 **Off by default, and switchable off.** A permission dialog thrown at someone
 before they have decided they like the page is a page they close. And a site
@@ -373,8 +373,8 @@ anyone, so the toggle gives back unconditional rain.
 
 **Things learned the hard way.** The manual lat/long box exists because a
 Kindle can refuse or silently fail to geolocate, and "it did not work" is not
-something a user can act on. A cached reading is published *synchronously*
-during construction, before the settings panel exists — without a boot guard
+something a user can act on. A cached reading is published _synchronously_
+during construction, before the controls exist — without a boot guard
 that threw a TDZ error on load. The rain columns had to be interleaved rather
 than kept left-to-right, or thinning rain huddled down one side of the stage.
 And the first cloud was nine columns wide: a Paper-mode screenshot showed it
@@ -428,7 +428,7 @@ that does not stop the click a mouse press generates, so the pet and the mascot
 both ignore a click that lands within 400ms of waking. Otherwise the tap meant
 to bring the interface back also pets the animal.
 
-Idle never fires over an open dialog — the settings you were halfway through
+Idle never fires over an open dialog — the pet you were halfway through
 must not vanish behind the pet — and the timer stops while the tab is in the
 background, since a tab nobody is looking at is not being watched. Paper mode
 already disables transitions globally, so the fade is Cozy-only; reduced motion
@@ -454,14 +454,32 @@ device can actually do before they are built, not after.
 
 ---
 
-## 13. Settings panel
+## 13. Controls (there is no settings panel)
 
-Display mode (Auto / Cozy / Paper) · Rain scene · Rain intensity ·
-Custom background (upload / show / scrim opacity / rain overlay on-off /
-remove) · 12/24h clock · Storage usage · Reset preferences · About.
+There was one. On the real Kindle the gear did nothing: the overlay never
+opened, and because the device has no console there was no way in and no way to
+tell why. An overlay is one more component that can fail, and when it fails it
+takes every setting behind it with it. So it is gone, along with the custom
+video/GIF background (§6), which was only reachable from inside it and could
+never have played on this device anyway.
+
+What survives sits on the page, under the animals, behind a dotted rule so a
+tap meant for the frog does not flip the display mode:
+
+- **Mode** — Cozy ⇄ Paper. The label says what tapping will _give_ you, not
+  where you are, because there is no hover and no tooltip on this device. It
+  writes an explicit mode rather than `auto`: anyone reaching for it has
+  already decided the automatic answer was wrong.
+- **Real sky** — the weather toggle (§9b). Its label doubles as the readout:
+  "Real sky" when off, "Asking…" while pending, then the condition itself.
+- A **lat/long field**, shown only while the real sky is on, carried over
+  intact — a Kindle can refuse or silently fail to geolocate.
+
+Everything else the panel held is either gone (rain intensity, custom
+background, reset, the storage readout) or already somewhere better: the clock
+toggles by tapping the clock, and the pet by tapping the pet.
 
 Written to browser storage on change, applied immediately, no save button.
-"Reset preferences" clears settings; it never touches an uploaded backdrop.
 
 ---
 
@@ -470,20 +488,15 @@ Written to browser storage on change, applied immediately, no save button.
 `localStorage` under a `rainlet:` prefix for small settings:
 
 ```
-rainlet:settings     { mode, scene, pet, intensity, clock24,
-                       bgEnabled, bgScrim, bgRainOverlay }
+rainlet:settings     { mode, scene, pet, clock24,
+                       weather, weatherCoords }
 rainlet:custom-pet   "OOFF.....…"   // 280 chars: the pet you drew (§8)
 ```
 
-IndexedDB `rainlet-media` for the one heavy value:
-
-```
-backgrounds  { id, name, mime, size, addedAt, blob }   // single row, id "current"
-```
-
-The database is at version 3; the upgrade deletes the `tracks` and `videos`
-stores the removed players used, so anyone who ran an earlier build gets that
-space back rather than carrying dead blobs forever.
+Nothing uses IndexedDB any more. The music, the videos and finally the custom
+backdrop all went, so boot deletes the old `rainlet-media` database outright —
+a reader has little room to spare and there is no reason to leave dead blobs on
+it forever.
 
 Every read is defensive — a corrupt or hand-edited value falls back to the
 default rather than white-screening the page. Unknown keys are dropped and
@@ -501,7 +514,7 @@ thing debuggable on-device. Vite gives us a dev server, hot reload, and a
 production build without shipping any runtime. Build target is ES2015 and asset
 paths are relative, so the output also works opened straight off a filesystem.
 
-Everything else is platform APIs — canvas, IndexedDB, matchMedia — each behind
+Everything else is platform APIs — canvas, geolocation, matchMedia — each behind
 a guard, because the Kindle browser has some of them and not others.
 
 Output is a plain static folder, so it hosts anywhere: GitHub Pages, Netlify,
@@ -517,10 +530,9 @@ rainlet/
 │   ├── display-mode.js
 │   ├── rain/          canvas engine + scenes
 │   ├── pets/          sprite grids, SVG stage, the drawing editor
-│   ├── media/         IndexedDB store for the uploaded backdrop
 │   ├── widgets/       clock
-│   ├── ui/            mascot, icons, backdrop
-│   ├── settings/      store + panel
+│   ├── ui/            mascot, icons, idle, on-device debug readout
+│   ├── settings/      store
 │   └── styles/        tokens, base, components, paper, fonts
 └── src/styles/fonts/  bundled pixel font
 ```
