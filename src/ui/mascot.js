@@ -56,16 +56,6 @@ const FACE = {
     [10, 15, 2, 1],
     [13, 15, 2, 1],
   ],
-  // Awake: round open eyes.
-  playing: [
-    [10, 14, 2, 2],
-    [13, 14, 2, 2],
-  ],
-  // Caught mid-blink.
-  paused: [
-    [10, 15, 2, 1],
-    [13, 14, 2, 2],
-  ],
   // Petted: happy ^ ^ eyes.
   happy: [
     [10, 15, 1, 1],
@@ -142,15 +132,15 @@ const UMBRELLA = "var(--mascot-umbrella, #A8C7E7)";
 const HEART = "var(--mascot-heart, #E8A0BF)";
 
 /**
- * @param {"idle"|"playing"|"paused"|"happy"} state
+ * @param {"idle"|"happy"} state
  * @param {number} frame 0 or 1, for the two-frame animations
  */
 export function mascotSvg(state = "idle", frame = 0) {
   const face = FACE[state] || FACE.idle;
-  const animated = state === "playing" || state === "happy";
+  const animated = state === "happy";
   const tail = TAIL_FRAMES[animated ? frame % 2 : 0];
   const ears = animated && frame % 2 === 1 ? EARS_UP : [];
-  // The cat only dozes when nothing is loaded; a paused track means awake.
+  // The cat dozes unless it has just been petted.
   const zzz = state === "idle" ? SLEEP_Z[frame % 2] : [];
   const hearts = state === "happy" ? [...HEARTS[0], ...HEARTS[1]] : [];
 
@@ -206,7 +196,7 @@ export function createMascot(element) {
   // Each state has its own cadence: a tail flick reads as alive at 600ms, a
   // drifting sleep "z" wants to be much slower or it looks agitated.
   function beat() {
-    if (state === "playing" || state === "happy") return 600;
+    if (state === "happy") return 600;
     if (state === "idle") return 2200;
     return 0;
   }

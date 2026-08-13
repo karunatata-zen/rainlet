@@ -5,6 +5,7 @@
 // card in CSS, and — the reason that actually matters here — an e-ink browser
 // repaints it as one flat region instead of a bitmap it has to dither.
 
+import { skyHalo, skyPatches, sleepPatches } from "../scene/daylight.js";
 import {
   GROUND_ROW,
   HEARTS,
@@ -32,18 +33,38 @@ function paint(rows, [r, c, text]) {
   rows[r] = (out + row.slice(c + text.length)).slice(0, STAGE_W);
 }
 
+// Deterministic streaks: a fixed set of columns, each falling at its own
+// speed. Random per repaint would shimmer, which on e-ink looks like grit.
+const RAIN_COLUMNS = [1, 4, 7, 11, 16, 20, 24, 28, 32, 35, 38];
+
+// Which columns survive as the rain thins out, in the order they are kept.
+// Interleaved rather than left-to-right, so light rain is spread across the
+// stage instead of huddled down one side.
+const RAIN_PRIORITY = [0, 6, 3, 9, 1, 7, 4, 10, 2, 8, 5];
+
 // Rain and ground are the same for every pet, so they live here rather than in
 // five copies of the same pixels.
-function backdropGrid(frame) {
+function backdropGrid(frame, phase, twinkle, wetness, covered) {
   const rows = blankGrid();
 
-  // Deterministic streaks: a fixed set of columns, each falling at its own
-  // speed. Random per repaint would shimmer, which on e-ink looks like grit.
-  const columns = [1, 4, 7, 11, 16, 20, 24, 28, 32, 35, 38];
-  for (let i = 0; i < columns.length; i += 1) {
-    const col = columns[i];
+  // Sky first, then rain routed around it.
+  const sky = skyPatches(phase, frame, { twinkle, covered });
+  for (const patch of sky) paint(rows, patch);
+  const halo = skyHalo(sky);
+
+  // How many of the streaks are actually falling. Real weather sets this: a
+  // clear afternoon outside gets none, and the scene is a dry one.
+  const keep = Math.round(
+    RAIN_COLUMNS.length * Math.min(1, Math.max(0, wetness)),
+  );
+  const active = new Set(RAIN_PRIORITY.slice(0, keep));
+
+  for (let i = 0; i < RAIN_COLUMNS.length; i += 1) {
+    if (!active.has(i)) continue;
+    const col = RAIN_COLUMNS[i];
     const speed = 3 + (i % 3);
     const y = (frame * speed + i * 5) % (GROUND_ROW + 2);
+    if (halo.has(`${y - 1},${col}`) || halo.has(`${y},${col}`)) continue;
     paint(rows, [y - 1, col, "R"]);
     paint(rows, [y, col, "R"]);
   }
@@ -51,34 +72,41 @@ function backdropGrid(frame) {
   paint(rows, [GROUND_ROW, 0, "G".repeat(STAGE_W)]);
   paint(rows, [GROUND_ROW + 1, 0, "G".repeat(STAGE_W)]);
 
-  // Two puddles that widen and narrow, so the ground is not a dead bar.
-  const wobble = frame % 2;
-  paint(rows, [GROUND_ROW, 2, "D".repeat(6 + wobble)]);
-  paint(rows, [GROUND_ROW, 29, "D".repeat(7 - wobble)]);
-  paint(rows, [GROUND_ROW + 2, 0, "D".repeat(STAGE_W)]);
+  // Two puddles that widen and narrow, so the ground is not a dead bar. They
+  // shrink with the rain and go entirely when it is dry outside — a puddle
+  // under a clear sky is the sort of detail that makes the rest look painted
+  // on rather than observed.
+  if (wetness > 0.05) {
+    const wobble = frame % 2;
+    const size = Math.min(1, wetness);
+    paint(rows, [
+      GROUND_ROW,
+      2,
+      "D".repeat(Math.max(1, Math.round((6 + wobble) * size))),
+    ]);
+    paint(rows, [
+      GROUND_ROW,
+      29,
+      "D".repeat(Math.max(1, Math.round((7 - wobble) * size))),
+    ]);
+    paint(rows, [GROUND_ROW + 2, 0, "D".repeat(STAGE_W)]);
+  }
 
   return rows;
 }
 
-function compose(petFrames, frame, hearts) {
-  const rows = backdropGrid(frame);
+function compose(petFrames, frame, hearts, phase, twinkle, wetness, covered) {
+  const rows = backdropGrid(frame, phase, twinkle, wetness, covered);
   const pet = petFrames[frame % petFrames.length];
   for (let r = 0; r < pet.length; r += 1) {
-    paint(rows, [r, 0, pet[r].padEnd(STAGE_W, ".")]);
+    // A space inside a sprite row is empty air, not an eraser. Painted as-is
+    // it wiped the whole backdrop — rain and sky both — everywhere the pet's
+    // own rows reached, which is the entire scene above the ground.
+    paint(rows, [r, 0, pet[r].padEnd(STAGE_W, " ").replace(/ /g, ".")]);
   }
+  for (const patch of sleepPatches(phase, frame)) paint(rows, patch);
   if (hearts) for (const patch of HEARTS) paint(rows, patch);
   return rows;
-}
-
-/**
- * The composed scene as a character grid, for anything that needs the picture
- * without the DOM — the screensaver export draws from this, so what you save
- * is the same scene you are looking at rather than a second drawing of it.
- * @param {string[][]} petFrames
- * @param {number} frame
- */
-export function sceneGrid(petFrames, frame = 0) {
-  return compose(petFrames, frame, false);
 }
 
 // Merge each run of identical characters into one rect: about a fifth as many
@@ -117,6 +145,12 @@ export function createPetStage(element, { fps = 4 } = {}) {
   let animate = true;
   let useColors = true;
   let hearts = false;
+  let phase = "day";
+  // Defaults are the scene as it was before the weather existed: it always
+  // rains, and the sky is whatever the clock says. Weather only ever narrows
+  // that, so an offline reader gets the old behaviour and no empty stage.
+  let wetness = 1;
+  let covered = false;
   let timer = null;
   let heartTimer = null;
 
@@ -125,7 +159,17 @@ export function createPetStage(element, { fps = 4 } = {}) {
   }
 
   function render() {
-    element.innerHTML = toSvg(compose(petFor(petId).frames, frame, hearts));
+    element.innerHTML = toSvg(
+      compose(
+        petFor(petId).frames,
+        frame,
+        hearts,
+        phase,
+        useColors,
+        wetness,
+        covered,
+      ),
+    );
   }
 
   function stop() {
@@ -191,6 +235,35 @@ export function createPetStage(element, { fps = 4 } = {}) {
     if (petId === id) setPet(pet ? id : PET_ORDER[0]);
   }
 
+  /**
+   * dawn | day | dusk | night. Only repaints if it actually changed, since on
+   * e-ink a needless repaint is a visible flash.
+   * @param {string} next
+   */
+  function setPhase(next) {
+    if (next === phase) return;
+    phase = next;
+    render();
+  }
+
+  /**
+   * How wet the scene is and whether the sky is covered. Set from the real
+   * weather when that is switched on, and left at the defaults when it is not.
+   * @param {{ wetness?: number, covered?: boolean }} next
+   */
+  function setWeather({ wetness: nextWet, covered: nextCovered } = {}) {
+    let changed = false;
+    if (typeof nextWet === "number" && nextWet !== wetness) {
+      wetness = nextWet;
+      changed = true;
+    }
+    if (typeof nextCovered === "boolean" && nextCovered !== covered) {
+      covered = nextCovered;
+      changed = true;
+    }
+    if (changed) render();
+  }
+
   function petIt() {
     hearts = true;
     render();
@@ -206,6 +279,8 @@ export function createPetStage(element, { fps = 4 } = {}) {
   return {
     setPet,
     setExtraPet,
+    setPhase,
+    setWeather,
     configure,
     pet: petIt,
     get current() {

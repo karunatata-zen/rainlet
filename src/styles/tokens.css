@@ -58,6 +58,10 @@
   --pet-puddle: #cfe3f5;
   --pet-ground: #e6dccd;
   --pet-heart: var(--candy);
+  --pet-star: #f6d06b;
+  --pet-sun: #f6d06b;
+  --pet-moon: #f3e6c8;
+  --pet-cloud: #eef2f7;
 }
 
 /* Sizes step in whole pixels so pixel-font glyph edges stay crisp. */
@@ -68,4 +72,44 @@
   --text-lg: 18px;
   --text-xl: 24px;
   --text-2xl: 32px;
+}
+
+/* Time of day, Cozy only. Every rule is scoped to the mode as well as the
+   phase so it can never outrank paper.css, which flattens the same tokens to
+   black and white and must keep winning on an e-ink panel.
+
+   Only the sky-ish tokens move — paper, rain, puddle, ground. Fur and blush
+   stay put: an animal that changes colour at dusk reads as a different animal,
+   not as evening. */
+html[data-mode="cozy"][data-phase="dawn"] {
+  --paper: #fdf1e8;
+  --paper-raised: #fffaf3;
+  --pet-rain: #b7a8cf;
+  --pet-puddle: #e7dcef;
+  --pet-ground: #ead8c6;
+  --pet-sun: #f2a97e;
+  --pet-star: #cbb6dd;
+}
+
+html[data-mode="cozy"][data-phase="dusk"] {
+  --paper: #efe6ee;
+  --paper-raised: #f8f2f6;
+  --ink-soft: #6f6473;
+  --pet-rain: #8f88b8;
+  --pet-puddle: #d5cde6;
+  --pet-ground: #d8cbc4;
+  --pet-moon: #efe0bd;
+}
+
+html[data-mode="cozy"][data-phase="night"] {
+  --paper: #e4e2ee;
+  --paper-raised: #f1f0f8;
+  --ink: #332f3d;
+  --ink-soft: #6b6577;
+  --line: #cfcadd;
+  --pet-rain: #7b78a6;
+  --pet-puddle: #c3bfdc;
+  --pet-ground: #cdc7c8;
+  --pet-moon: #f6efd6;
+  --pet-star: #f3e4a6;
 }

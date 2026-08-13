@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#FDF6EC" />
     <meta
       name="description"
-      content="Rainlet — a cute pixel pet in the rain, with rain sounds, for Kindle and other e-ink readers."
+      content="Rainlet — a cute pixel pet in the rain, for Kindle and other e-ink readers."
     />
     <title>Rainlet</title>
   </head>
@@ -69,15 +69,6 @@
 
           <div class="chips" id="pet-chips"></div>
 
-          <div class="stage-actions">
-            <button class="btn btn--quiet" id="save-picture" type="button">
-              Save as a picture
-            </button>
-            <span class="muted" id="picture-hint">
-              A 1072×1448 PNG, sized for a Kindle screen.
-            </span>
-          </div>
-
           <!-- Shown only when the page was opened from a shared pet link. -->
           <div class="gift" id="gift-bar" hidden>
             <span class="gift__text" id="gift-text">
@@ -90,31 +81,6 @@
           </div>
         </article>
 
-        <!-- Rain sounds ----------------------------------------------------->
-        <article class="card card--ambience">
-          <header class="card__head">
-            <h2 class="card__title">Rain sounds</h2>
-            <span class="muted" id="ambience-hint"
-              >Tap one. No download needed.</span
-            >
-          </header>
-
-          <div class="chips" id="ambience-chips"></div>
-
-          <label class="volume volume--wide">
-            <span class="visually-hidden">Rain sound volume</span>
-            <span data-icon="drop" aria-hidden="true"></span>
-            <input
-              id="ambience-volume"
-              type="range"
-              min="0"
-              max="100"
-              value="60"
-            />
-          </label>
-
-          <div class="meter" id="meter" aria-hidden="true"></div>
-        </article>
       </main>
 
       <footer class="footer">

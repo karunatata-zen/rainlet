@@ -8,8 +8,13 @@ export const DEFAULT_SETTINGS = {
   scene: "drizzle",
   pet: "cat",
   intensity: 1, // 0.25 .. 2
-  reactive: true,
   clock24: true,
+  // Off by default. Turning it on asks for your location, and a page that
+  // throws a permission dialog at you before you have decided you like it is
+  // a page you close. It is opt-in from Settings instead.
+  weather: false,
+  weatherCoords: "", // "51.5, -0.12" — typed in when geolocation is refused
+
   bgEnabled: false,
   bgScrim: 0.45, // 0 .. 0.9
   bgRainOverlay: true,
@@ -68,7 +73,9 @@ export function onSettingsChange(fn) {
 export function resetPreferences() {
   // "player" is dead but still cleared: an older build wrote it, and this is
   // the only place that would ever tidy it up.
-  for (const key of ["settings", "player"]) {
+  // "weather" is the cached reading, not a preference, but a reset that leaves
+  // yesterday's sky behind is not a reset.
+  for (const key of ["settings", "player", "weather"]) {
     try {
       localStorage.removeItem(STORAGE_PREFIX + key);
     } catch {

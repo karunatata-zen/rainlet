@@ -49,6 +49,10 @@
   --pet-puddle: #000000;
   --pet-ground: #000000;
   --pet-heart: #000000;
+  --pet-star: #000000;
+  --pet-sun: #ffffff;
+  --pet-moon: #ffffff;
+  --pet-cloud: #ffffff;
 }
 
 /* Grayscale anything we cannot control, such as a custom video backdrop. */

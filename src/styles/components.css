@@ -74,8 +74,7 @@
 /* Inline SVG icons carry no intrinsic size, and their span wrapper is an
    inline flex item — without an explicit box they collapse to zero width. */
 .chip [data-icon],
-.pbtn [data-icon],
-.volume [data-icon] {
+.pbtn [data-icon] {
   display: block;
   width: 16px;
   height: 16px;
@@ -83,7 +82,6 @@
 
 .chip [data-icon] svg,
 .pbtn [data-icon] svg,
-.volume [data-icon] svg,
 .pbtn > svg {
   display: block;
   width: 16px;
@@ -165,26 +163,6 @@
   cursor: not-allowed;
 }
 
-.volume {
-  display: flex;
-  align-items: center;
-  gap: var(--step-2);
-  margin-left: auto;
-}
-
-.volume input {
-  width: 80px;
-}
-
-.volume--wide {
-  margin-left: 0;
-  margin-top: var(--step-3);
-}
-
-.volume--wide input {
-  width: 100%;
-}
-
 /* Rain friend ----------------------------------------------------------- */
 
 .chips {
@@ -249,21 +227,6 @@
 .chip--sound[aria-pressed="true"] {
   background: var(--mint);
   border-color: var(--ink-soft);
-}
-
-.meter {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 20px;
-  margin-top: var(--step-3);
-}
-
-.meter span {
-  display: block;
-  width: 6px;
-  background: var(--rain);
-  height: 2px;
 }
 
 /* Overlays and panels --------------------------------------------------- */
@@ -554,20 +517,6 @@ input[type="text"] {
   font-size: var(--text-sm);
 }
 
-/* Saving the scene as a picture ------------------------------------------ */
-
-.stage-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--step-2);
-  margin-top: var(--step-3);
-}
-
-.stage-actions .muted {
-  flex: 1 1 16ch;
-}
-
 /* Idle mode -------------------------------------------------------------- */
 
 /* Everything but the scene steps back, so a reader left propped on a desk
@@ -576,10 +525,8 @@ input[type="text"] {
    a visible flash. */
 .is-idle .topbar,
 .is-idle .footer,
-.is-idle .card--ambience,
 .is-idle .card--stage .card__head,
 .is-idle .card--stage .chips,
-.is-idle .card--stage .stage-actions,
 .is-idle .card--stage .gift {
   opacity: 0;
   pointer-events: none;
@@ -588,10 +535,8 @@ input[type="text"] {
 
 .is-idle .topbar,
 .is-idle .footer,
-.is-idle .card--ambience,
 .is-idle .card--stage .card__head,
 .is-idle .card--stage .chips,
-.is-idle .card--stage .stage-actions,
 .is-idle .card--stage .gift {
   /* Collapsed as well as faded. Faded alone leaves them taking up room, and
      the scene is then sized around things nobody can see. */
@@ -631,7 +576,6 @@ input[type="text"] {
 @media (prefers-reduced-motion: reduce) {
   .is-idle .topbar,
   .is-idle .footer,
-  .is-idle .card--ambience,
   .is-idle .card--stage .card__head,
   .is-idle .card--stage .chips,
   .is-idle .card--stage .gift {
@@ -645,14 +589,5 @@ input[type="text"] {
   .shell {
     padding: var(--step-3);
     gap: var(--step-4);
-  }
-
-  .volume {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .volume input {
-    width: 100%;
   }
 }

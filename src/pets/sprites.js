@@ -42,6 +42,10 @@ export const PALETTE = {
   R: "var(--pet-rain)",
   D: "var(--pet-puddle)",
   G: "var(--pet-ground)",
+  s: "var(--pet-star)",
+  u: "var(--pet-sun)",
+  m: "var(--pet-moon)",
+  c: "var(--pet-cloud)",
   H: "var(--pet-heart)",
 };
 

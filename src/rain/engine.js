@@ -38,7 +38,6 @@ export function createRain(canvas) {
   let tuning = TUNING.cozy;
   let scene = getScene("drizzle");
   let intensity = 1;
-  let reactive = true;
   let frozen = false;
   let enabled = true;
 
@@ -53,7 +52,6 @@ export function createRain(canvas) {
   let settled = null; // per-column settled height, in cells
   let flashUntil = 0;
 
-  let levels = { bass: 0, mid: 0, treble: 0 };
   let rafId = null;
   let lastFrame = 0;
   let lastTick = 0;
@@ -62,7 +60,10 @@ export function createRain(canvas) {
   function resize() {
     const rect = canvas.getBoundingClientRect();
     const cssWidth = Math.max(1, Math.floor(rect.width || window.innerWidth));
-    const cssHeight = Math.max(1, Math.floor(rect.height || window.innerHeight));
+    const cssHeight = Math.max(
+      1,
+      Math.floor(rect.height || window.innerHeight),
+    );
 
     // Cap the backing store at 1x on Paper mode: the extra pixels cost CPU and
     // an e-ink panel cannot show them anyway.
@@ -108,38 +109,25 @@ export function createRain(canvas) {
       layer,
       depth,
       sparkle,
-      flash: 0,
     });
   }
 
   function update(dt) {
-    // Audio nudges the rain: bass on fall speed, mids on spawn rate.
-    const bass = reactive ? levels.bass : 0;
-    const mid = reactive ? levels.mid : 0;
-    const speedScale = 1 + bass * 0.8;
-    const spawnScale = intensity * (1 + mid * 1.1);
-
-    spawnCarry += scene.spawn * spawnScale * dt;
+    spawnCarry += scene.spawn * intensity * dt;
     while (spawnCarry >= 1) {
       spawn();
       spawnCarry -= 1;
     }
 
-    if (reactive && levels.treble > 0.72 && drops.length) {
-      const victim = drops[Math.floor(Math.random() * drops.length)];
-      victim.flash = 0.18;
-    }
-
     for (let i = drops.length - 1; i >= 0; i -= 1) {
       const drop = drops[i];
-      drop.y += drop.speed * speedScale * dt;
+      drop.y += drop.speed * dt;
       drop.driftAcc += drop.drift * dt;
       if (Math.abs(drop.driftAcc) >= 1) {
         const step = Math.trunc(drop.driftAcc);
         drop.col = wrap(drop.col + step, columns);
         drop.driftAcc -= step;
       }
-      if (drop.flash > 0) drop.flash -= dt;
 
       const floor = rows - (settled ? settled[drop.col] : 0);
       const rising = drop.speed < 0;
@@ -191,14 +179,17 @@ export function createRain(canvas) {
       if (drop.sparkle) {
         ctx.fillStyle = paper ? "#000" : scene.colors[0];
         for (const [dx, dy] of SPARKLE_SHAPES[drop.sparkle]) {
-          ctx.fillRect(x + dx * cell * 0.5, y + dy * cell * 0.5, cell * 0.5, cell * 0.5);
+          ctx.fillRect(
+            x + dx * cell * 0.5,
+            y + dy * cell * 0.5,
+            cell * 0.5,
+            cell * 0.5,
+          );
         }
         continue;
       }
 
-      if (drop.flash > 0 && !paper) {
-        ctx.fillStyle = "#FFFFFF";
-      } else if (paper) {
+      if (paper) {
         ctx.fillStyle = "#000000";
       } else {
         ctx.fillStyle = scene.colors[drop.layer % scene.colors.length];
@@ -304,13 +295,6 @@ export function createRain(canvas) {
     },
     setIntensity(value) {
       intensity = value;
-    },
-    setReactive(value) {
-      reactive = value;
-      if (!value) levels = { bass: 0, mid: 0, treble: 0 };
-    },
-    setLevels(next) {
-      levels = next;
     },
     setEnabled(value) {
       enabled = value;

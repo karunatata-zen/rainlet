@@ -7,6 +7,7 @@ import { getSettings, setSetting } from "./store.js";
 import { estimateUsage } from "../media/store.js";
 import { detectMode } from "../display-mode.js";
 import { APP_NAME, BACKGROUND_MIME_HINT } from "../config.js";
+import { conditionLabel, parseCoords } from "../scene/weather.js";
 
 const BYTE_UNITS = ["B", "KB", "MB", "GB"];
 
@@ -80,7 +81,15 @@ function slider({ min, max, step, value, onInput, ariaLabel }) {
   return input;
 }
 
-export function createSettingsPanel({ bodyEl, aboutEl, backdrop, onChange, onToast, getMode }) {
+export function createSettingsPanel({
+  bodyEl,
+  aboutEl,
+  backdrop,
+  weather,
+  onChange,
+  onToast,
+  getMode,
+}) {
   async function render() {
     const settings = getSettings();
     const mode = getMode();
@@ -148,21 +157,72 @@ export function createSettingsPanel({ bodyEl, aboutEl, backdrop, onChange, onToa
     );
     bodyEl.appendChild(intensityField);
 
-    // Reactivity --------------------------------------------------------
-    const reactiveField = field(
-      "Sound reactivity",
-      mode === "paper"
-        ? "Off in Paper mode — e-ink cannot keep up with the sound."
-        : "The rain moves with whichever rain sound is playing.",
+    // Real weather --------------------------------------------------------
+    const state = weather && weather.state;
+    const weatherField = field(
+      "Real weather",
+      state
+        ? `It is ${conditionLabel(state.condition)} where you are, so that is what the scene is doing.`
+        : settings.weather
+          ? "Asking… if it cannot find out, the scene stays as it is."
+          : "Off — it rains here all the time. Turn this on and the scene follows the sky outside instead.",
     );
-    reactiveField.appendChild(
-      toggle("React to the rain sounds", settings.reactive, (value) => {
-        setSetting("reactive", value);
+    weatherField.appendChild(
+      toggle("Follow the sky outside", settings.weather, (value) => {
+        setSetting("weather", value);
+        if (weather) weather.setEnabled(value);
         onChange();
         render();
       }),
     );
-    bodyEl.appendChild(reactiveField);
+
+    if (settings.weather) {
+      // The manual box exists because a Kindle can refuse or simply fail to
+      // produce a location, and "it did not work" is not an answer anyone can
+      // act on. Typing two numbers always works.
+      const coordsRow = document.createElement("div");
+      coordsRow.className = "field__row";
+
+      const coordsInput = document.createElement("input");
+      coordsInput.type = "text";
+      coordsInput.value = settings.weatherCoords;
+      coordsInput.placeholder = "or type: 51.5, -0.12";
+      coordsInput.setAttribute("aria-label", "Latitude and longitude");
+      coordsRow.appendChild(coordsInput);
+
+      const apply = document.createElement("button");
+      apply.type = "button";
+      apply.className = "btn";
+      apply.textContent = "Use";
+      apply.addEventListener("click", () => {
+        const text = coordsInput.value.trim();
+        if (!text) {
+          setSetting("weatherCoords", "");
+          if (weather) weather.setCoords(null);
+          onToast("Back to asking your device");
+          render();
+          return;
+        }
+        const parsed = parseCoords(text);
+        if (!parsed) {
+          onToast("Needs two numbers, like 51.5, -0.12");
+          return;
+        }
+        setSetting("weatherCoords", text);
+        if (weather) weather.setCoords(parsed);
+        onToast("Looking at that sky instead");
+        render();
+      });
+      coordsRow.appendChild(apply);
+      weatherField.appendChild(coordsRow);
+
+      const note = document.createElement("span");
+      note.className = "field__hint";
+      note.textContent =
+        "Weather comes from open-meteo. Your position is rounded to about a kilometre before it is sent, and nothing else leaves the device.";
+      weatherField.appendChild(note);
+    }
+    bodyEl.appendChild(weatherField);
 
     // Custom background -------------------------------------------------
     const bgRecord = backdrop.record;

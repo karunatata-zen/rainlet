@@ -17,6 +17,14 @@ import { hydrateIcons } from "./ui/icons.js";
 import { createBackdrop } from "./ui/backdrop.js";
 import { createIdle } from "./ui/idle.js";
 import { createClock } from "./widgets/clock.js";
+import { PHASE_RAIN, phaseAt, watchPhase } from "./scene/daylight.js";
+import {
+  CONDITION_COVERED,
+  CONDITION_RAIN,
+  conditionLabel,
+  createWeather,
+  parseCoords,
+} from "./scene/weather.js";
 import { createPetStage } from "./pets/stage.js";
 import { PETS, PET_ORDER } from "./pets/sprites.js";
 import {
@@ -28,18 +36,14 @@ import {
   saveDrawing,
 } from "./pets/custom.js";
 import { createPetMaker } from "./pets/maker.js";
-import { saveScreensaver } from "./pets/screensaver.js";
 import {
   clearSharedRows,
   copyText,
   readSharedRows,
   shareUrl,
 } from "./pets/share.js";
-import { AMBIENCES, AMBIENCE_ORDER, createAmbience } from "./media/ambience.js";
 
 const el = (id) => document.getElementById(id);
-
-const METER_BARS = 8;
 
 function main() {
   hydrateIcons();
@@ -66,6 +70,19 @@ function main() {
     }, 2600);
   }
 
+  // Time of day ----------------------------------------------------------
+  // The scene follows the clock. The phase is on <html> so the stylesheet can
+  // shift the palette without JS touching colours.
+  let phase = phaseAt();
+  document.documentElement.dataset.phase = phase;
+
+  // Real weather, if it has been switched on and an answer has arrived. Null
+  // means "we do not know", which is the same as the scene before weather
+  // existed: it rains, and the sky follows the clock.
+  let weatherState = null;
+  const wetnessNow = () =>
+    weatherState ? (CONDITION_RAIN[weatherState.condition] ?? 1) : 1;
+
   // Rain + backdrop ------------------------------------------------------
   const rain = createRain(el("rain"));
   const backdrop = createBackdrop({
@@ -76,13 +93,17 @@ function main() {
   function applyRain() {
     const settings = getSettings();
     const hasBackground = Boolean(backdrop.record) && settings.bgEnabled;
+    const wetness = wetnessNow();
+    // Clear outside means a dry screen. That is the point of asking, but it is
+    // also the one case where this site shows no rain at all, so it can only
+    // happen when the user has deliberately turned the weather on.
     const showRain =
-      mode === "paper" || !hasBackground || settings.bgRainOverlay;
+      (mode === "paper" || !hasBackground || settings.bgRainOverlay) &&
+      wetness > 0;
 
     rain.setMode(mode);
     rain.setScene(settings.scene);
-    rain.setIntensity(settings.intensity);
-    rain.setReactive(settings.reactive && mode !== "paper" && !reduced);
+    rain.setIntensity(settings.intensity * (PHASE_RAIN[phase] || 1) * wetness);
     rain.freeze(reduced);
     rain.setEnabled(showRain);
 
@@ -111,34 +132,6 @@ function main() {
     toast(PURRS[Math.floor(Math.random() * PURRS.length)]);
   });
   createClock({ button: el("clock"), output: el("clock-time") });
-
-  // Level meter ----------------------------------------------------------
-  const meterEl = el("meter");
-  const bars = [];
-  for (let i = 0; i < METER_BARS; i += 1) {
-    const bar = document.createElement("span");
-    meterEl.appendChild(bar);
-    bars.push(bar);
-  }
-
-  function paintMeter(levels) {
-    // Three bands spread across eight bars, so it reads as a level meter
-    // rather than as three blocks.
-    const values = [
-      levels.bass,
-      levels.bass * 0.9,
-      levels.mid,
-      levels.mid * 1.1,
-      levels.mid * 0.8,
-      levels.treble,
-      levels.treble * 0.9,
-      levels.treble * 0.7,
-    ];
-    for (let i = 0; i < bars.length; i += 1) {
-      const height = Math.max(2, Math.min(20, Math.round(values[i] * 20)));
-      bars[i].style.height = `${height}px`;
-    }
-  }
 
   // Pet stage ------------------------------------------------------------
   const stageEl = el("pet-stage");
@@ -229,29 +222,6 @@ function main() {
     toast(PATS[Math.floor(Math.random() * PATS.length)]);
   });
 
-  // The scene as a file ---------------------------------------------------
-  // Black and white at the panel's own resolution, whichever mode the site is
-  // in: the picture is going onto an e-ink screen either way.
-  const pictureHintEl = el("picture-hint");
-
-  el("save-picture").addEventListener("click", () => {
-    const preset = petPreset(stage.current);
-    if (!preset) return;
-    saveScreensaver(preset.frames, `rainlet-${stage.current}`).then((saved) => {
-      if (!saved) {
-        toast("This browser cannot save files");
-        return;
-      }
-      toast("Saved");
-      // Said only once it is relevant, and said honestly: Amazon does not let
-      // you replace the lock screen on a stock Kindle, so promising a
-      // screensaver would be a promise the device breaks.
-      pictureHintEl.textContent =
-        "Copy it to your Kindle over USB and open it from the photo viewer. " +
-        "Replacing the real lock screen needs a jailbroken reader.";
-    });
-  });
-
   // Paper mode gets the scene in black and white and at the e-ink frame rate;
   // reduced-motion gets a single still frame.
   function applyStageMode() {
@@ -262,73 +232,6 @@ function main() {
       colors: mode !== "paper",
     });
   }
-
-  // Rain sounds ----------------------------------------------------------
-  // Generated on the fly rather than downloaded: nothing to sideload, nothing
-  // to license, and it works with the Kindle offline.
-  const ambienceChipsEl = el("ambience-chips");
-  const ambienceHintEl = el("ambience-hint");
-  const ambienceVolumeEl = el("ambience-volume");
-  let ambienceTimer = null;
-
-  const ambience = createAmbience({
-    onState(state) {
-      for (const button of ambienceChipsEl.children) {
-        button.setAttribute(
-          "aria-pressed",
-          String(button.dataset.sound === state.id && state.playing),
-        );
-      }
-      ambienceHintEl.textContent = state.playing
-        ? `${AMBIENCES[state.id].hint} Tap again to stop.`
-        : "Tap one. No download needed.";
-
-      mascot.setState(state.playing ? "playing" : "idle", {
-        animate: mode !== "paper" && !reduced,
-      });
-
-      clearInterval(ambienceTimer);
-      ambienceTimer = null;
-      if (!state.playing) {
-        paintMeter({ bass: 0, mid: 0, treble: 0 });
-        rain.setLevels({ bass: 0, mid: 0, treble: 0 });
-        return;
-      }
-      // Drive the rain and the meter from whatever is sounding, so the drops
-      // move with what you can actually hear.
-      ambienceTimer = setInterval(() => {
-        const levels = ambience.read();
-        rain.setLevels(levels);
-        if (mode !== "paper" && !reduced) paintMeter(levels);
-      }, 120);
-    },
-  });
-
-  for (const id of AMBIENCE_ORDER) {
-    const preset = AMBIENCES[id];
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "chip chip--sound";
-    button.dataset.sound = id;
-    button.setAttribute("aria-pressed", "false");
-
-    const emoji = document.createElement("span");
-    emoji.className = "chip__emoji";
-    emoji.textContent = preset.emoji;
-    button.appendChild(emoji);
-
-    const label = document.createElement("span");
-    label.textContent = preset.label;
-    button.appendChild(label);
-
-    button.addEventListener("click", () => ambience.toggle(id));
-    ambienceChipsEl.appendChild(button);
-  }
-
-  ambienceVolumeEl.value = String(Math.round(ambience.volume * 100));
-  ambienceVolumeEl.addEventListener("input", () => {
-    ambience.setVolume(Number(ambienceVolumeEl.value) / 100);
-  });
 
   /**
    * Swaps in (or forgets) the hand-made pet everywhere at once: the stage, the
@@ -463,8 +366,39 @@ function main() {
     toast("Friend put away");
   });
 
+  // Real weather -----------------------------------------------------------
+  // The scene asks what the sky is doing where you are, and follows it. It
+  // never waits: the page is already drawn from the clock by the time this
+  // gets an answer, and if no answer comes, that is what stays.
+  function applyWeather() {
+    stage.setWeather({
+      wetness: wetnessNow(),
+      covered: weatherState
+        ? Boolean(CONDITION_COVERED[weatherState.condition])
+        : false,
+    });
+    applyRain();
+  }
+
+  // A cached reading is published synchronously as this is constructed, which
+  // is before the settings panel and the overlays exist. Boot applies whatever
+  // arrived; this only handles what comes after.
+  let booted = false;
+
+  const weather = createWeather({
+    enabled: getSettings().weather,
+    coords: parseCoords(getSettings().weatherCoords),
+    onChange(state) {
+      weatherState = state;
+      if (!booted) return;
+      applyWeather();
+      if (!settingsOverlay.hidden) settingsPanel.render();
+    },
+  });
+
   // Settings -------------------------------------------------------------
   const settingsPanel = createSettingsPanel({
+    weather,
     bodyEl: el("settings-body"),
     aboutEl: el("about-line"),
     backdrop,
@@ -481,6 +415,8 @@ function main() {
     if (!window.confirm("Reset preferences back to the defaults?")) return;
     resetPreferences();
     mode = applyMode(resolveMode());
+    weather.setEnabled(getSettings().weather);
+    weather.setCoords(null);
     applyRain();
     applyStageMode();
     selectPet(getSettings().pet, { save: false });
@@ -528,15 +464,6 @@ function main() {
       closePanel(makerOverlay);
       return;
     }
-    // Space toggles the rain sound unless the user is on a control.
-    const tag = (event.target.tagName || "").toLowerCase();
-    if (
-      event.key === " " &&
-      !["input", "select", "button", "textarea"].includes(tag)
-    ) {
-      event.preventDefault();
-      ambience.toggle(ambience.id || AMBIENCE_ORDER[0]);
-    }
   });
 
   // Idle ------------------------------------------------------------------
@@ -551,10 +478,19 @@ function main() {
     },
   });
 
+  watchPhase((next) => {
+    phase = next;
+    document.documentElement.dataset.phase = next;
+    stage.setPhase(next);
+    applyRain();
+  });
+
   // Boot -----------------------------------------------------------------
+  booted = true;
   backdrop.load().then(() => applyRain());
-  applyRain();
+  applyWeather();
   applyStageMode();
+  stage.setPhase(phase);
   setCustomPet(loadDrawing(), { select: false });
   selectPet(getSettings().pet, { save: false });
   const sharedRows = readSharedRows();
