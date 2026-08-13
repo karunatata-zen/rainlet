@@ -66,33 +66,92 @@ export function createPetMaker({ gridEl, paletteEl, onChange }) {
     }
   }
 
+  // Set while a stroke is in progress, so the whole drag reports once instead
+  // of once per cell. The preview that listens to onChange redraws the animal,
+  // and doing that thirty times mid-drag is what makes a slow screen lag
+  // behind the finger.
+  let changedDuringStroke = false;
+
   function put(r, c) {
     if (r < 0 || r >= DRAW_H || c < 0 || c >= DRAW_W) return;
     const char = erasing ? EMPTY : ink;
     if (rows[r][c] === char) return;
     rows[r] = rows[r].slice(0, c) + char + rows[r].slice(c + 1);
     paintCell(r, c);
-    if (onChange) onChange(rows);
+    if (painting) changedDuringStroke = true;
+    else if (onChange) onChange(rows);
+  }
+
+  // Fills in the cells between two samples. A finger moves faster than the
+  // touch events describing it — on a Kindle far faster — so consecutive
+  // points can be several cells apart, and painting only where they land
+  // leaves a dotted line. Bresenham, so a diagonal is a diagonal.
+  function putLine(r0, c0, r1, c1) {
+    const dr = Math.abs(r1 - r0);
+    const dc = Math.abs(c1 - c0);
+    const stepR = r0 < r1 ? 1 : -1;
+    const stepC = c0 < c1 ? 1 : -1;
+    let error = dc - dr;
+    let r = r0;
+    let c = c0;
+    // Bounded by the grid: a stray coordinate cannot spin here forever.
+    for (let guard = 0; guard < DRAW_W * DRAW_H; guard += 1) {
+      put(r, c);
+      if (r === r1 && c === c1) return;
+      const doubled = error * 2;
+      if (doubled > -dr) {
+        error -= dr;
+        c += stepC;
+      }
+      if (doubled < dc) {
+        error += dc;
+        r += stepR;
+      }
+    }
   }
 
   // One listener on the container, hit-tested from coordinates: dragging is the
   // whole point of a drawing grid, and per-cell listeners cannot follow a
   // finger that leaves the cell it started in.
+  let box = null;
+  let last = null;
+
   function cellAt(clientX, clientY) {
-    const box = gridEl.getBoundingClientRect();
-    const c = Math.floor(((clientX - box.left) / box.width) * DRAW_W);
-    const r = Math.floor(((clientY - box.top) / box.height) * DRAW_H);
+    // Measured once per stroke. getBoundingClientRect forces layout, and doing
+    // that on every touchmove costs exactly the frames the drag needs.
+    const bounds = box || gridEl.getBoundingClientRect();
+    const c = Math.floor(((clientX - bounds.left) / bounds.width) * DRAW_W);
+    const r = Math.floor(((clientY - bounds.top) / bounds.height) * DRAW_H);
     return [r, c];
   }
 
   function pointerDown(x, y) {
+    box = gridEl.getBoundingClientRect();
     painting = true;
-    put(...cellAt(x, y));
+    changedDuringStroke = false;
+    last = cellAt(x, y);
+    put(last[0], last[1]);
   }
 
   function pointerMove(x, y) {
     if (!painting) return;
-    put(...cellAt(x, y));
+    const next = cellAt(x, y);
+    if (last && (next[0] !== last[0] || next[1] !== last[1])) {
+      putLine(last[0], last[1], next[0], next[1]);
+    } else {
+      put(next[0], next[1]);
+    }
+    last = next;
+  }
+
+  function pointerUp() {
+    painting = false;
+    box = null;
+    last = null;
+    if (changedDuringStroke) {
+      changedDuringStroke = false;
+      if (onChange) onChange(rows);
+    }
   }
 
   gridEl.addEventListener("mousedown", (event) => {
@@ -113,14 +172,14 @@ export function createPetMaker({ gridEl, paletteEl, onChange }) {
     const touch = event.touches[0];
     if (touch) pointerMove(touch.clientX, touch.clientY);
   });
+  // Every ending goes through pointerUp, including the ones that look like
+  // giving up. Clearing `painting` on its own would leave `last` pointing at
+  // the end of the previous stroke, and the next drag would open with a line
+  // drawn back to wherever the finger was last time.
   for (const name of ["mouseup", "mouseleave", "touchend", "touchcancel"]) {
-    gridEl.addEventListener(name, () => {
-      painting = false;
-    });
+    gridEl.addEventListener(name, pointerUp);
   }
-  document.addEventListener("mouseup", () => {
-    painting = false;
-  });
+  document.addEventListener("mouseup", pointerUp);
 
   // --- palette ------------------------------------------------------------
   const swatchButtons = [];
