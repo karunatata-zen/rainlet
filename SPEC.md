@@ -518,12 +518,15 @@ Everything else is platform APIs — canvas, geolocation, matchMedia — each be
 a guard, because the Kindle browser has some of them and not others.
 
 **The API floor is roughly 2020, and it is not enforced by the build.** Vite's
-`es2015` target downlevels _syntax_; it does not know that a method exists. Two
+`es2015` target downlevels _syntax_; it does not know that a method exists. Three
 bugs came from exactly that. `inset: 0` silently disabled the settings overlay,
 and `replaceChildren()` threw — which wiped out the row of animals and, because
-it threw mid-boot, everything scheduled after it. Neither showed up anywhere
-except on the device. Prefer the oldest call that does the job: `removeChild`
-in a loop, and the four long-hand offsets.
+it threw mid-boot, everything scheduled after it. And `aspect-ratio` was
+the only thing giving the drawing grid a height, so the grid collapsed and
+there was nowhere to draw; its cells now square themselves with `height: 0;
+padding-bottom: 100%`. None of the three showed up anywhere except on the
+device. Prefer the oldest thing that does the job: `removeChild` in a loop, the
+four long-hand offsets, percentage padding for a ratio.
 
 **No emoji, anywhere on screen.** The animal chips used to be 🐱🐶🦆🐰🐸 and
 on the Kindle every one of them came out as a question mark: the device has no

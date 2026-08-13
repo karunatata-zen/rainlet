@@ -348,11 +348,15 @@ input[type="text"] {
 
 /* One span per cell rather than a canvas: no hit-testing maths against a
    scaled bitmap, and nothing to blur on a non-integer device ratio. */
+/* The rows are sized by the cells, not by an aspect-ratio on this container.
+   aspect-ratio is from 2021 and the Kindle's browser does not have it: the
+   declaration was dropped, the 1fr rows had nothing to divide, and the grid
+   collapsed to no height at all — there was simply nowhere to draw. Each cell
+   squares itself instead, with a trick that has worked since IE. */
 .draw {
   display: grid;
   grid-template-columns: repeat(var(--draw-cols, 20), 1fr);
-  grid-template-rows: repeat(var(--draw-rows, 14), 1fr);
-  aspect-ratio: var(--draw-cols, 20) / var(--draw-rows, 14);
+  grid-auto-rows: auto;
   background: var(--paper-raised);
   border: var(--border) solid var(--line);
   border-radius: var(--radius);
@@ -362,6 +366,11 @@ input[type="text"] {
 }
 
 .draw__cell {
+  /* Square, and the source of the grid's height: percentage padding resolves
+     against the cell's own width, so height 0 + padding-bottom 100% is a
+     square box in any browser. */
+  height: 0;
+  padding-bottom: 100%;
   /* Hairlines only: enough to aim at, not so much that the drawing reads as
      a grid instead of an animal. */
   box-shadow: inset -1px -1px 0 rgba(124, 112, 121, 0.18);
