@@ -1,0 +1,18 @@
+/* Silkscreen (SIL Open Font License 1.1), bundled locally so the pixel type
+   still renders with no network — which is the normal case on a Kindle. */
+
+@font-face {
+  font-family: "Silkscreen";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/silkscreen-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Silkscreen";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./fonts/silkscreen-700.woff2") format("woff2");
+}

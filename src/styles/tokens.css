@@ -1,0 +1,71 @@
+/* Palette, type and spacing tokens. Paper mode overrides live in paper.css. */
+
+:root {
+  --paper: #fdf6ec;
+  --paper-raised: #fffdf8;
+  --ink: #3a3238;
+  --ink-soft: #7c7079;
+  --rain: #a8c7e7;
+  --mint: #b8e0d2;
+  --peach: #f7c9b8;
+  --candy: #e8a0bf;
+  --line: #e2d6c8;
+
+  --shadow-sticker: 3px 3px 0 var(--line);
+  --shadow-raised: 4px 4px 0 rgba(58, 50, 56, 0.14);
+
+  --radius: 4px;
+  --border: 2px;
+
+  --step-1: 4px;
+  --step-2: 8px;
+  --step-3: 12px;
+  --step-4: 16px;
+  --step-5: 24px;
+  --step-6: 32px;
+
+  /* Pixel face for headings and numerals; system sans for reading. */
+  --font-pixel: "Silkscreen", "Press Start 2P", "Courier New", monospace;
+  --font-body:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+
+  --tap: 44px;
+  --transition: 120ms steps(3, end);
+
+  /* Mascot needs its own tokens: the palette vars all collapse to black in
+     Paper mode, which would turn the cat into an unreadable blob. */
+  --mascot-line: var(--ink);
+  --mascot-fur: var(--peach);
+  --mascot-umbrella: var(--rain);
+  --mascot-heart: var(--candy);
+
+  /* Pet stage. Fur and accent are overwritten per animal from JS; these are
+     the shared parts of the scene and the fallback for anything that is not. */
+  --pet-line: #4a3b34;
+  --pet-fur: var(--peach);
+  --pet-fur-dark: #e0a88f;
+  --pet-white: #fffdf8;
+  --pet-eye: #2f2a2e;
+  --pet-blush: #f7b7bd;
+  --pet-pink: #f6c3ce;
+  --pet-nose: #e58a95;
+  --pet-gold: #f6d06b;
+  --pet-stem: #7fa872;
+  --pet-accent: var(--rain);
+  --pet-accent-dark: #7fa6cc;
+  --pet-rain: #8fb4dd;
+  --pet-puddle: #cfe3f5;
+  --pet-ground: #e6dccd;
+  --pet-heart: var(--candy);
+}
+
+/* Sizes step in whole pixels so pixel-font glyph edges stay crisp. */
+:root {
+  --text-xs: 10px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+}

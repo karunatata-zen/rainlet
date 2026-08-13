@@ -1,0 +1,658 @@
+/* Top bar --------------------------------------------------------------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--step-3);
+  flex-wrap: wrap;
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--step-2);
+}
+
+.topbar__name {
+  font-family: var(--font-pixel);
+  font-size: var(--text-lg);
+}
+
+.topbar__status {
+  display: flex;
+  align-items: center;
+  gap: var(--step-2);
+}
+
+.mascot {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  border: 0;
+  image-rendering: pixelated;
+  cursor: pointer;
+}
+
+/* A tiny hop on tap, so petting feels like it did something. */
+.mascot:active {
+  transform: translateY(-2px);
+}
+
+.mascot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--step-1);
+  min-height: 32px;
+  padding: 0 var(--step-2);
+  background: var(--paper-raised);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sticker);
+  font-family: var(--font-pixel);
+  font-size: var(--text-sm);
+}
+
+.chip--clock {
+  font-size: var(--text-md);
+}
+
+.chip--icon {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  justify-content: center;
+}
+
+/* Inline SVG icons carry no intrinsic size, and their span wrapper is an
+   inline flex item — without an explicit box they collapse to zero width. */
+.chip [data-icon],
+.pbtn [data-icon],
+.volume [data-icon] {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.chip [data-icon] svg,
+.pbtn [data-icon] svg,
+.volume [data-icon] svg,
+.pbtn > svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+}
+
+.chip:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--line);
+}
+
+/* Cards ----------------------------------------------------------------- */
+
+.card {
+  background: var(--paper-raised);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sticker);
+  padding: var(--step-4);
+  min-width: 0;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--step-2);
+  margin-bottom: var(--step-3);
+}
+
+.card__title {
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.card__actions {
+  display: flex;
+  gap: var(--step-1);
+}
+
+.linkish {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: var(--text-xs);
+  color: var(--rain);
+  text-decoration: underline;
+}
+
+.pbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  background: var(--paper);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sticker);
+}
+
+.pbtn--primary {
+  background: var(--mint);
+}
+
+.pbtn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--line);
+}
+
+.pbtn[aria-pressed="true"] {
+  background: var(--candy);
+}
+
+.pbtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.volume {
+  display: flex;
+  align-items: center;
+  gap: var(--step-2);
+  margin-left: auto;
+}
+
+.volume input {
+  width: 80px;
+}
+
+.volume--wide {
+  margin-left: 0;
+  margin-top: var(--step-3);
+}
+
+.volume--wide input {
+  width: 100%;
+}
+
+/* Rain friend ----------------------------------------------------------- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--step-2);
+}
+
+/* The whole scene is the button: on a Kindle, aiming at the animal itself
+   would be a coin-toss, and a big target is also the cuter interaction. */
+.stage {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin-bottom: var(--step-3);
+  background: var(--paper);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  /* Matches the 32x24 sprite grid, so pixels stay square at every width. */
+  aspect-ratio: 5 / 4;
+}
+
+.stage svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.stage:active {
+  border-color: var(--candy);
+}
+
+.chip--pet {
+  gap: var(--step-2);
+  min-height: var(--tap);
+  padding: 0 var(--step-3);
+  background: var(--paper);
+}
+
+.chip--pet[aria-pressed="true"] {
+  background: var(--peach);
+  border-color: var(--ink-soft);
+}
+
+.chip--pet .chip__emoji,
+.chip--sound .chip__emoji {
+  font-size: var(--text-md);
+  line-height: 1;
+}
+
+/* Rain sounds ----------------------------------------------------------- */
+
+.chip--sound {
+  gap: var(--step-2);
+  min-height: var(--tap);
+  padding: 0 var(--step-3);
+  background: var(--paper);
+  text-align: left;
+}
+
+.chip--sound[aria-pressed="true"] {
+  background: var(--mint);
+  border-color: var(--ink-soft);
+}
+
+.meter {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 20px;
+  margin-top: var(--step-3);
+}
+
+.meter span {
+  display: block;
+  width: 6px;
+  background: var(--rain);
+  height: 2px;
+}
+
+/* Overlays and panels --------------------------------------------------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--step-4);
+  background: rgba(58, 50, 56, 0.35);
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.panel {
+  width: 100%;
+  max-width: 520px;
+  max-height: 86vh;
+  overflow-y: auto;
+  background: var(--paper);
+  border: var(--border) solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-raised);
+  padding: var(--step-4);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--step-2);
+  margin-bottom: var(--step-4);
+}
+
+.panel__head h2 {
+  font-size: var(--text-lg);
+}
+
+.panel__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--step-2);
+  margin-top: var(--step-4);
+  padding-top: var(--step-3);
+  border-top: var(--border) dotted var(--line);
+  flex-wrap: wrap;
+}
+
+.btn {
+  min-height: 36px;
+  padding: 0 var(--step-3);
+  background: var(--mint);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sticker);
+  font-size: var(--text-sm);
+}
+
+.btn--quiet {
+  background: var(--paper-raised);
+}
+
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--line);
+}
+
+/* Settings -------------------------------------------------------------- */
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step-2);
+}
+
+.field__label {
+  font-family: var(--font-pixel);
+  font-size: var(--text-sm);
+}
+
+.field__hint {
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+
+.field__row {
+  display: flex;
+  align-items: center;
+  gap: var(--step-2);
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: flex;
+  gap: var(--step-1);
+  flex-wrap: wrap;
+}
+
+.segmented button {
+  min-height: 34px;
+  padding: 0 var(--step-3);
+  background: var(--paper-raised);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--text-xs);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--mint);
+  box-shadow: var(--shadow-sticker);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: var(--step-2);
+  font-size: var(--text-sm);
+}
+
+select,
+input[type="text"] {
+  min-height: 34px;
+  padding: 0 var(--step-2);
+  background: var(--paper-raised);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+/* Toast ----------------------------------------------------------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--step-5);
+  transform: translateX(-50%);
+  z-index: 20;
+  padding: var(--step-2) var(--step-4);
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius);
+  font-family: var(--font-pixel);
+  font-size: var(--text-sm);
+  max-width: 90vw;
+  text-align: center;
+}
+
+.toast[hidden] {
+  display: none;
+}
+
+/* Pet maker ------------------------------------------------------------- */
+
+.maker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step-3);
+}
+
+/* One span per cell rather than a canvas: no hit-testing maths against a
+   scaled bitmap, and nothing to blur on a non-integer device ratio. */
+.draw {
+  display: grid;
+  grid-template-columns: repeat(var(--draw-cols, 20), 1fr);
+  grid-template-rows: repeat(var(--draw-rows, 14), 1fr);
+  aspect-ratio: var(--draw-cols, 20) / var(--draw-rows, 14);
+  background: var(--paper-raised);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  /* A finger dragging across the grid must draw, not scroll the panel. */
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.draw__cell {
+  /* Hairlines only: enough to aim at, not so much that the drawing reads as
+     a grid instead of an animal. */
+  box-shadow: inset -1px -1px 0 rgba(124, 112, 121, 0.18);
+}
+
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--step-2);
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  background: var(--paper-raised);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+}
+
+.swatch[aria-pressed="true"] {
+  border-color: var(--ink);
+  box-shadow: var(--shadow-sticker);
+}
+
+.swatch__dot {
+  width: 18px;
+  height: 18px;
+  border: var(--border) solid var(--line);
+  border-radius: 2px;
+}
+
+/* The eraser has no colour of its own, so it is drawn as a struck-out tile. */
+.swatch__dot--eraser {
+  background: linear-gradient(
+    to top right,
+    transparent 45%,
+    var(--ink-soft) 45%,
+    var(--ink-soft) 55%,
+    transparent 55%
+  );
+}
+
+.maker__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--step-2);
+}
+
+/* The file input is hidden, so its label has to behave like the buttons
+   beside it. */
+.maker__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.maker__save {
+  display: flex;
+  gap: var(--step-2);
+}
+
+.link-out input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 var(--step-2);
+  background: var(--paper-raised);
+  border: var(--border) solid var(--line);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+}
+
+.link-out[hidden] {
+  display: none;
+}
+
+/* A pet arriving by link ------------------------------------------------- */
+
+.gift {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--step-2);
+  margin-top: var(--step-3);
+  padding: var(--step-3);
+  background: var(--peach);
+  border: var(--border) dashed var(--ink-soft);
+  border-radius: var(--radius);
+}
+
+.gift[hidden] {
+  display: none;
+}
+
+.gift__text {
+  flex: 1 1 12ch;
+  font-size: var(--text-sm);
+}
+
+/* Saving the scene as a picture ------------------------------------------ */
+
+.stage-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--step-2);
+  margin-top: var(--step-3);
+}
+
+.stage-actions .muted {
+  flex: 1 1 16ch;
+}
+
+/* Idle mode -------------------------------------------------------------- */
+
+/* Everything but the scene steps back, so a reader left propped on a desk
+   shows an animal in the rain rather than a dashboard. Nothing is removed
+   from the DOM: waking up has to be instant, and a relayout on a Kindle is
+   a visible flash. */
+.is-idle .topbar,
+.is-idle .footer,
+.is-idle .card--ambience,
+.is-idle .card--stage .card__head,
+.is-idle .card--stage .chips,
+.is-idle .card--stage .stage-actions,
+.is-idle .card--stage .gift {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms ease;
+}
+
+.is-idle .topbar,
+.is-idle .footer,
+.is-idle .card--ambience,
+.is-idle .card--stage .card__head,
+.is-idle .card--stage .chips,
+.is-idle .card--stage .stage-actions,
+.is-idle .card--stage .gift {
+  /* Collapsed as well as faded. Faded alone leaves them taking up room, and
+     the scene is then sized around things nobody can see. */
+  position: absolute;
+  height: 0;
+  overflow: hidden;
+}
+
+.is-idle .shell {
+  padding: 0;
+  gap: 0;
+}
+
+.is-idle .card--stage {
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.is-idle .stage {
+  /* Fills whichever dimension runs out first, keeping the pixels square. */
+  width: min(100vw, calc(100vh * 5 / 4));
+  height: auto;
+  margin: 0;
+  background: none;
+  border: 0;
+}
+
+/* A held frame is fine; a fade on an e-ink panel is a smear. Paper mode
+   already kills transitions globally, and this covers reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .is-idle .topbar,
+  .is-idle .footer,
+  .is-idle .card--ambience,
+  .is-idle .card--stage .card__head,
+  .is-idle .card--stage .chips,
+  .is-idle .card--stage .gift {
+    transition: none;
+  }
+}
+
+/* Narrow screens -------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .shell {
+    padding: var(--step-3);
+    gap: var(--step-4);
+  }
+
+  .volume {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .volume input {
+    width: 100%;
+  }
+}

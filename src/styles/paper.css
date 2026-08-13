@@ -1,0 +1,127 @@
+/* Paper mode: e-ink readers. Pure black and white, hatch patterns instead of
+   mid-tones, hard borders instead of shadows, and no transitions — an e-ink
+   panel cannot render a fade without smearing. */
+
+[data-mode="paper"] {
+  --paper: #ffffff;
+  --paper-raised: #ffffff;
+  --ink: #000000;
+  --ink-soft: #000000;
+  --rain: #000000;
+  --mint: #ffffff;
+  --peach: #ffffff;
+  --candy: #000000;
+  --line: #000000;
+
+  --shadow-sticker: none;
+  --shadow-raised: none;
+  --border: 1px;
+  --transition: 0ms;
+
+  /* A Kindle's touch layer is coarser than a phone's and there is no hover to
+     tell you where your finger is, so give every control a bigger target. */
+  --tap: 48px;
+
+  /* Keep the cat legible: black outline, white fills. */
+  --mascot-line: #000000;
+  --mascot-fur: #ffffff;
+  --mascot-umbrella: #ffffff;
+  --mascot-heart: #000000;
+
+  /* Pet stage in black and white. Every sprite carries a full black outline,
+     so the fills can all go white and the animal still reads against a white
+     sky — it becomes a line drawing. Only the parts that are meant to be dark
+     (eyes, markings, the flower centre) stay black. JS clears its per-animal
+     inline colours in this mode so these win. */
+  --pet-line: #000000;
+  --pet-fur: #ffffff;
+  --pet-fur-dark: #000000;
+  --pet-white: #ffffff;
+  --pet-eye: #000000;
+  --pet-blush: #ffffff;
+  --pet-pink: #ffffff;
+  --pet-nose: #000000;
+  --pet-gold: #000000;
+  --pet-stem: #000000;
+  --pet-accent: #ffffff;
+  --pet-accent-dark: #000000;
+  --pet-rain: #000000;
+  --pet-puddle: #000000;
+  --pet-ground: #000000;
+  --pet-heart: #000000;
+}
+
+/* Grayscale anything we cannot control, such as a custom video backdrop. */
+[data-mode="paper"] .backdrop__media {
+  filter: grayscale(100%) contrast(140%);
+}
+
+[data-mode="paper"] .muted,
+[data-mode="paper"] .card__title,
+[data-mode="paper"] .field__hint,
+[data-mode="paper"] .footer {
+  /* --ink-soft collapses to black, so lean on size for hierarchy instead. */
+  opacity: 1;
+}
+
+/* Selected states need a fill that survives having no colour. */
+[data-mode="paper"] .segmented button[aria-pressed="true"],
+[data-mode="paper"] .pbtn[aria-pressed="true"],
+[data-mode="paper"] .pbtn--primary {
+  background-image: repeating-linear-gradient(
+    45deg,
+    #000 0,
+    #000 1px,
+    #fff 1px,
+    #fff 3px
+  );
+  border-width: 2px;
+}
+
+/* Keep label text legible on top of the hatch. */
+[data-mode="paper"] .segmented button[aria-pressed="true"] {
+  background-color: #fff;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+[data-mode="paper"] .overlay {
+  background: #fff;
+}
+
+[data-mode="paper"] .panel {
+  border-width: 2px;
+}
+
+/* The native range thumb is small and a Kindle has no cursor to aim with, so
+   grow the whole control's hit box rather than restyling the thumb — the stock
+   browser ignores most thumb styling anyway. */
+[data-mode="paper"] input[type="range"] {
+  height: 32px;
+}
+
+/* No press-depress travel: it would trigger a needless panel refresh. */
+[data-mode="paper"] .chip:active,
+[data-mode="paper"] .pbtn:active,
+[data-mode="paper"] .btn:active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* The pet scene is the one thing you sit and watch, so give it a heavier
+   frame than the cards around it. */
+[data-mode="paper"] .stage {
+  border-width: 2px;
+}
+
+[data-mode="paper"] * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Reduced motion: freeze anything that moves, in either mode. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
