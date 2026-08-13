@@ -20,7 +20,7 @@ import { createRain } from "./rain/engine.js";
 import { createMascot } from "./ui/mascot.js";
 import { hydrateIcons } from "./ui/icons.js";
 import { createIdle } from "./ui/idle.js";
-import { startDebug } from "./ui/debug.js";
+import { showFatal, startDebug } from "./ui/debug.js";
 import { createClock } from "./widgets/clock.js";
 import { PHASE_RAIN, phaseAt, watchPhase } from "./scene/daylight.js";
 import {
@@ -181,7 +181,12 @@ function main() {
   // Rebuilt rather than patched, because saving or deleting a custom pet adds
   // or removes a chip in the middle of the row.
   function renderPetChips() {
-    petChipsEl.replaceChildren();
+    // Not replaceChildren(): that landed in 2021 and throws on the Kindle,
+    // where it took the whole animal row and everything after it in boot with
+    // it. removeChild has worked since forever.
+    while (petChipsEl.firstChild) {
+      petChipsEl.removeChild(petChipsEl.firstChild);
+    }
     for (const id of PET_ORDER) {
       petChip(id, PETS[id]).addEventListener("click", () => selectPet(id));
     }
@@ -558,5 +563,6 @@ try {
   main();
 } catch (error) {
   if (debug) debug.fail(error);
+  else showFatal(error);
   throw error;
 }

@@ -517,6 +517,20 @@ paths are relative, so the output also works opened straight off a filesystem.
 Everything else is platform APIs — canvas, geolocation, matchMedia — each behind
 a guard, because the Kindle browser has some of them and not others.
 
+**The API floor is roughly 2020, and it is not enforced by the build.** Vite's
+`es2015` target downlevels _syntax_; it does not know that a method exists. Two
+bugs came from exactly that. `inset: 0` silently disabled the settings overlay,
+and `replaceChildren()` threw — which wiped out the row of animals and, because
+it threw mid-boot, everything scheduled after it. Neither showed up anywhere
+except on the device. Prefer the oldest call that does the job: `removeChild`
+in a loop, and the four long-hand offsets.
+
+**A failure has to be readable on the device.** There is no console on a
+Kindle, so a thrown error is a half-drawn page and nothing to report. Boot is
+wrapped, and anything that escapes prints one plain line at the top of the
+screen naming what threw. `?debug` adds the fuller readout — viewport, pixel
+ratio, which modern CSS the engine admits to.
+
 Output is a plain static folder, so it hosts anywhere: GitHub Pages, Netlify,
 or a Python one-liner on your LAN so the Kindle can reach it.
 

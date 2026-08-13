@@ -88,3 +88,30 @@ export function startDebug() {
     },
   };
 }
+
+/**
+ * Shown when boot dies, whether or not ?debug was asked for. A Kindle with a
+ * half-drawn page and no console gives you nothing to report; one line of text
+ * naming the thing that threw is the difference between "it's broken" and a
+ * fix. Written with the oldest DOM calls there are, because whatever broke the
+ * app must not also break this.
+ * @param {unknown} error
+ */
+export function showFatal(error) {
+  try {
+    if (!document.body) return;
+    const box = document.createElement("pre");
+    box.style.cssText =
+      "margin:0;padding:8px;background:#fff;color:#000;border-bottom:2px solid #000;" +
+      "font:12px/1.4 monospace;white-space:pre-wrap;word-break:break-all;position:relative;z-index:99";
+    box.appendChild(
+      document.createTextNode(
+        "Rainlet hit a snag: " +
+          (error && error.message ? error.message : String(error)),
+      ),
+    );
+    document.body.insertBefore(box, document.body.firstChild);
+  } catch (ignored) {
+    // If even this fails there is nothing left to try.
+  }
+}
